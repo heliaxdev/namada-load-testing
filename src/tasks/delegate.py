@@ -1,16 +1,27 @@
 from dataclasses import dataclass
 
-from src.constants import BOND_AMOUNT
 from src.store import Account, Validator, Delegation
 from src.task import Task, TaskResult
 
 
 @dataclass
 class Delegate(Task):
+    BOND_AMOUNT = 5
+
     def handler(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:
-        delegator = Account.get_random_account_with_balance_grater_than(BOND_AMOUNT * 2)
+        delegator = Account.get_random_account_with_balance_grater_than(self.BOND_AMOUNT * 2)
+        if not delegator:
+            return TaskResult(
+                self.task_name,
+                "",
+                "",
+                "",
+                step_index,
+                self.seed
+            )
+
         validator = Validator.get_random_validator()
-        amount = BOND_AMOUNT
+        amount = self.BOND_AMOUNT
 
         command = self.client.bond(delegator.alias, validator.address, amount, ledger_address)
         is_successful, stdout, stderr = self.execute_command(command)

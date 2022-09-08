@@ -3,13 +3,15 @@ from dataclasses import dataclass
 from random import choice
 from typing import Tuple, List, Dict
 
-from src.constants import MIN_ACCOUNT_PER_RUN, TOKENS, ACCOUNT_FORMAT
+from src.constants import TOKENS, ACCOUNT_FORMAT
 from src.store import Account, Validator
 from src.task import Task, TaskResult
 
 
 @dataclass
 class Init(Task):
+    MIN_ACCOUNT_PER_RUN = 10
+
     def handler(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:
         aliases, addresses = self._get_all_alias_and_addresses()
         validator_addresses = self._get_all_validators(ledger_address)
@@ -69,7 +71,7 @@ class Init(Task):
 
     def _setup_accounts(self, aliases: List[str], addresses: List[str], ledger_address: str):
         i = len(aliases)
-        while i < MIN_ACCOUNT_PER_RUN:
+        while i < self.MIN_ACCOUNT_PER_RUN:
             alias, address = self._create_account(ledger_address)
             aliases.append(alias)
             addresses.append(address)

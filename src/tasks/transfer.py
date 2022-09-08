@@ -9,6 +9,16 @@ from src.task import Task, TaskResult
 class Transfer(Task):
     def handler(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:
         from_account = Account.get_random_account_with_positive_balance()
+        if not from_account:
+            return TaskResult(
+                self.task_name,
+                "",
+                "",
+                "",
+                step_index,
+                self.seed
+            )
+
         to_account = Account.get_random_account()
         token = from_account.token
         amount = random.randint(0, from_account.amount)

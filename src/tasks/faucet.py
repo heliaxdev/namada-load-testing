@@ -1,16 +1,18 @@
 from dataclasses import dataclass
 import random
 
-from src.constants import FAUCET_AMOUNT_LIMIT, TOKENS, TOKEN_PROBABILITIES
+from src.constants import TOKENS, TOKEN_PROBABILITIES
 from src.store import Account
 from src.task import Task, TaskResult
 
 
 @dataclass
 class Faucet(Task):
+    FAUCET_AMOUNT_LIMIT = 1000
+
     def handler(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:
         account = Account.get_random_account()
-        amount = random.randint(0, FAUCET_AMOUNT_LIMIT)
+        amount = random.randint(0, self.FAUCET_AMOUNT_LIMIT)
         token = random.choices(TOKENS, TOKEN_PROBABILITIES).pop()
 
         command = self.client.faucet(account.alias, token, amount, ledger_address)

@@ -309,5 +309,6 @@ cython_debug/
 
 .idea
 configs/*.yaml
-logs/*.log
+logs/*
+!logs/.keep
 db.db

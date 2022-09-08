@@ -10,6 +10,6 @@ tasks:
     probability: 10
 
 settings:
-  seed: 1337
+  seed: 1331
   dry_run: false
-  max: 1000
+  max: 30

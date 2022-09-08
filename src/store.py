@@ -27,7 +27,7 @@ class Account(BaseModel):
 
     @classmethod
     def get_random_account_with_balance_grater_than(cls, amount: int):
-        return cls.select().where(cls.amount > amount).order_by(fn.Random()).get()
+        return cls.select().where(cls.amount > amount).order_by(fn.Random()).get_or_none()
 
     @classmethod
     def update_account_balance(cls, alias: str, token: str, delta_amount: int):
