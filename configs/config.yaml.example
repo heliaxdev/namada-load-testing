@@ -1,0 +1,13 @@
+nodes:
+  - 0.0.0.0:26657
+
+tasks:
+  - type: Faucet
+    probability: 65
+  - type: Transfer
+    probability: 35
+
+settings:
+  seed: 1337
+  dry_run: false
+  max: 100
