@@ -49,3 +49,7 @@ class ClientCommands(Command):
     def transfer(self, from_alias: str, to_alias: str, token: str, amount: int, ledger_address: str):
         signer = from_alias.removeprefix("{}-".format(ACCOUNT_FORMAT))
         return self._get_full_command(self.sub_binary, "transfer --source {0} --target {1} --signer {2} --token {3} --amount {4}".format(from_alias, to_alias, signer, token, amount), ledger_address)
+
+    def bond(self, from_alias: str, to_validator: str, amount: int, ledger_address: str):
+        return self._get_full_command(self.sub_binary, "bond --source {0} --validator {1} --amount {2}".format(from_alias, to_validator, amount), ledger_address)
+

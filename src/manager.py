@@ -8,6 +8,7 @@ from src.config import Config
 from src.constants import LOCAL_LEDGER_ADDRESS
 from src.store import connect
 from src.task import Task
+from src.tasks.delegate import Delegate
 from src.tasks.faucet import Faucet
 from src.tasks.init import Init
 from src.tasks.transfer import Transfer
@@ -17,10 +18,15 @@ from src.tasks.transfer import Transfer
 class Manager:
     config: Config
     all_tasks: Dict = field(init=False)
+    stats: Dict = field(init=False)
 
     def __post_init__(self):
+        tasks = self.config.get_tasks()
+        self.stats = {task_name: {'succeeded': 0, 'failed': 0} for task_name in [task['type'] for task in tasks]}
+
         seed = self.config.get_seed()
         random.seed(seed)
+
         Path("db.db").unlink(missing_ok=True)
         connect()
 
@@ -43,7 +49,15 @@ class Manager:
             task_result = next_task.run(index, base_directory, node_address, dry_run)
             task_result.dump()
             if task_result.is_error() and fail_fast:
+                self.stats[task_result.task_name]['failed'] += 1
+                self.print_stats()
                 raise Exception("Task {} failed at step {}!".format(next_task.task_name, index))
+            elif task_result.is_error():
+                self.stats[task_result.task_name]['failed'] += 1
+            else:
+                self.stats[task_result.task_name]['succeeded'] += 1
+
+        self.print_stats()
 
     @staticmethod
     def _get_random_node_address(nodes: List[str]):
@@ -60,12 +74,20 @@ class Manager:
         return task_types, task_probabilities
 
     @staticmethod
-    def _build_all_tasks(base_diretory: str, base_binary: str, seed: int) -> Dict[str, Task]:
+    def _build_all_tasks(base_directory: str, base_binary: str, seed: int) -> Dict[str, Task]:
         return {
-            'Faucet': Faucet('Faucet', base_diretory, base_binary, seed),
-            'Transfer': Transfer('Transfer', base_diretory, base_binary, seed),
-            'Init': Init('Init', base_diretory, base_binary, seed)
+            'Delegate': Delegate('Delegate', base_directory, base_binary, seed),
+            'Faucet': Faucet('Faucet', base_directory, base_binary, seed),
+            'Transfer': Transfer('Transfer', base_directory, base_binary, seed),
+            'Init': Init('Init', base_directory, base_binary, seed)
         }
+
+    def print_stats(self):
+        print("Done!")
+        for task_name in self.stats.keys():
+            succeeded = self.stats[task_name]['succeeded']
+            failed = self.stats[task_name]['failed']
+            print("{} - {} / {}".format(task_name, succeeded, failed))
 
 
 

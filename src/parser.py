@@ -46,3 +46,7 @@ class Parser:
     def parse_client_init_account(output: str) -> Tuple[str, str]:
         tmp = output.splitlines()[-1].split(' ')
         return tmp[2].strip(), tmp[-1][:-1].strip()
+
+    @staticmethod
+    def parse_client_epoch(output: str) -> int:
+        return int(output.splitlines()[1].split(': ')[1])
