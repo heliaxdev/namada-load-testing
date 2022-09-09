@@ -39,6 +39,9 @@ class ClientCommands(Command):
     def get_account_balance(self, owner: str, ledger_address: str):
         return self._get_full_command(self.sub_binary, "balance --owner {0}".format(owner), ledger_address)
 
+    def get_delegations(self, ledger_address: str):
+        return self._get_full_command(self.sub_binary, "bonds", ledger_address)
+
     def init_account(self, alias: str, ledger_address: str):
         return self._get_full_command(self.sub_binary, "init-account --alias {0}-{1} --public-key {1} --source {1}".format(ACCOUNT_FORMAT, alias), ledger_address)
 
@@ -52,4 +55,11 @@ class ClientCommands(Command):
 
     def bond(self, from_alias: str, to_validator: str, amount: int, ledger_address: str):
         return self._get_full_command(self.sub_binary, "bond --source {0} --validator {1} --amount {2}".format(from_alias, to_validator, amount), ledger_address)
+
+    def unbond(self, from_alias: str, to_validator: str, amount: int, ledger_address: str):
+        return self._get_full_command(self.sub_binary, "unbond --source {0} --validator {1} --amount {2}".format(from_alias, to_validator, amount), ledger_address)
+
+    def withdraw(self, from_alias: str, to_validator: str, ledger_address: str):
+        return self._get_full_command(self.sub_binary, "withdraw --source {0} --validator {1}".format(from_alias, to_validator), ledger_address)
+
 

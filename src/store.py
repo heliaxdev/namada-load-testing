@@ -1,6 +1,10 @@
+import os
+
 from peewee import SqliteDatabase, Model, CharField, IntegerField, fn, ForeignKeyField
 
-db: SqliteDatabase = SqliteDatabase('db.db')
+db_name = os.getenv('DB_NAME', 'db.db')
+db: SqliteDatabase = SqliteDatabase(db_name)
+
 
 class BaseModel(Model):
     class Meta:
@@ -30,6 +34,10 @@ class Account(BaseModel):
         return cls.select().where(cls.amount > amount).order_by(fn.Random()).get_or_none()
 
     @classmethod
+    def get_by_address(cls, address: str):
+        return cls.select().where(cls.address == address).get_or_none()
+
+    @classmethod
     def update_account_balance(cls, alias: str, token: str, delta_amount: int):
         user = cls.get(cls.alias == alias)
         old_amount = user.amount
@@ -47,6 +55,10 @@ class Validator(BaseModel):
     def get_random_validator(cls):
         return cls.select().order_by(fn.Random()).get()
 
+    @classmethod
+    def get_by_address(cls, address: str):
+        return cls.select().where(cls.address == address).get_or_none()
+
 
 class Delegation(BaseModel):
     account_id = ForeignKeyField(Account, to_field='id')
@@ -58,7 +70,37 @@ class Delegation(BaseModel):
     def create_delegation(cls, account_id: int, validator_id: int, amount: int, epoch: int):
         return cls.create(account_id=account_id, validator_id=validator_id, amount=amount, epoch=epoch)
 
+    @classmethod
+    def get_random_valid_delegation(cls, current_epoch: int):
+        return cls.select().where(
+                (cls.epoch < current_epoch) &
+                (cls.amount < 10000)
+        ).order_by(fn.Random()).get_or_none()
 
-def connect():
+
+class Withdrawal(BaseModel):
+    account_id = ForeignKeyField(Account, to_field='id')
+    validator_id = ForeignKeyField(Validator, to_field='id')
+    amount = IntegerField()
+    epoch = IntegerField()
+
+    @classmethod
+    def create_withdrawal(cls, account_id: int, validator_id: int, amount: int, epoch: int):
+        return cls.get_or_create(account_id=account_id, validator_id=validator_id, amount=amount, epoch=epoch)
+
+    @classmethod
+    def get_random_withdrawable_withdraw(cls, current_epoch: int):
+        return cls.select().where(cls.epoch <= current_epoch).order_by(fn.Random()).get_or_none()
+
+    @classmethod
+    def get_compatible_withdrawals(cls, delegator_id: int, validator_id: int, epoch: int):
+        return cls.select().where(
+            cls.epoch <= epoch,
+            cls.account_id == delegator_id,
+            cls.validator_id == validator_id
+        ).order_by(cls.epoch).execute()
+
+
+def connect(seed: str):
     db.connect()
-    db.create_tables([Account, Validator, Delegation])
+    db.create_tables([Account, Validator, Delegation, Withdrawal])

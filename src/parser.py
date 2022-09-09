@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
-from src.constants import ACCOUNT_FORMAT
-
 
 @dataclass
 class Parser:
@@ -50,3 +48,56 @@ class Parser:
     @staticmethod
     def parse_client_epoch(output: str) -> int:
         return int(output.splitlines()[1].split(': ')[1])
+
+    @staticmethod
+    def parse_client_delegations(output: str) -> List[Tuple[str, str, int, int]]:
+        delegator_address = None
+        validator_address = None
+        bonds = []
+        for line in output.splitlines()[2:]:
+            if line.strip().startswith('Delegations from'):
+                tmp = line.split(' ')
+                delegator_address = Parser._remove_symbols(tmp[2])
+                validator_address = Parser._remove_symbols(tmp[5])
+            elif line.strip().startswith('Active') and (delegator_address is not None and validator_address is not None):
+                tmp = line.strip().split()
+                epoch = Parser._remove_symbols(tmp[3])
+                amount = Parser._remove_symbols(tmp[5])
+                bonds.append((delegator_address, validator_address, int(epoch), int(amount)))
+            elif line.strip().startswith('Self-bonds'):
+                delegator_address = None
+                validator_address = None
+
+        return bonds
+
+    @staticmethod
+    def parse_client_withdrawals(output: str) -> List[Tuple[str, str, int, int, int]]:
+        delegator_address = None
+        validator_address = None
+        withdrawals = []
+        for line in output.splitlines()[2:]:
+            if line.strip().startswith('Unbonded delegations'):
+                tmp = line.split(' ')
+                delegator_address = Parser._remove_symbols(tmp[3])
+                validator_address = Parser._remove_symbols(tmp[6])
+            elif line.strip().startswith('Withdrawable from') and (delegator_address is not None and validator_address is not None):
+                tmp = line.strip().split()
+                epoch = Parser._remove_symbols(tmp[3])
+                epoch_active = Parser._remove_symbols(tmp[6])
+                amount = Parser._remove_symbols(tmp[8])
+                withdrawals.append((
+                    delegator_address, validator_address, epoch, epoch_active, amount
+                ))
+
+        return withdrawals
+
+    @staticmethod
+    def parse_epoch_from_tx_execution(output: str) -> int:
+        for line in output.splitlines():
+            if line.strip().startswith('Last committed epoch'):
+                return int(line.split(': ')[1])
+        return None
+
+    @staticmethod
+    def _remove_symbols(string: str):
+        return ''.join(c for c in string if c.isalnum())

@@ -3,13 +3,17 @@ nodes:
 
 tasks:
   - type: Faucet
-    probability: 55
+    probability: 15
   - type: Transfer
-    probability: 35
+    probability: 0
   - type: Delegate
-    probability: 10
+    probability: 30
+  - type: Unbond
+    probability: 30
+  - type: Withdraw
+    probability: 30
 
 settings:
-  seed: 1331
+  seed: 1337
   dry_run: false
-  max: 30
+  max: 150

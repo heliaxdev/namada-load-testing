@@ -3,7 +3,6 @@ import os
 import subprocess
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
-from datetime import datetime
 from typing import Tuple, List
 
 from src.commands import WalletCommands, ClientCommands
