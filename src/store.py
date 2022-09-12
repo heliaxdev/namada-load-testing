@@ -105,6 +105,14 @@ class Withdrawal(BaseModel):
         return cls.delete().execute()
 
 
-def connect(seed: str):
+class Proposal(BaseModel):
+    proposal_id = IntegerField(primary_key=True)
+    author = ForeignKeyField(Account, to_field='id')
+    voting_start_epoch = IntegerField()
+    voting_end_epoch = IntegerField()
+    grace_epoch = IntegerField()
+
+
+def connect():
     db.connect()
-    db.create_tables([Account, Validator, Delegation, Withdrawal])
+    db.create_tables([Account, Validator, Delegation, Withdrawal, Proposal])

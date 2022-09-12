@@ -1,3 +1,4 @@
+import logging
 import string
 from dataclasses import dataclass
 from random import choice
@@ -14,13 +15,19 @@ class Init(Task):
 
     def handler(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:
         aliases, addresses = self._get_all_alias_and_addresses()
+        logging.info("Setting up validators...")
         validator_addresses = self._get_all_validators(ledger_address)
+        logging.info("Setting up delegations...")
         delegations = self._get_delegations(addresses, validator_addresses, ledger_address)
+        logging.info("Setting up withdrawals...")
         withdrawals = self._get_withdrawals(addresses, validator_addresses, ledger_address)
 
+        logging.info("Setting up accounts...")
         self._setup_accounts(aliases, addresses, ledger_address)
         alias_balances = self._get_all_balances(aliases, ledger_address)
+        logging.info("Init storage...")
         self._init_storage(aliases, addresses, validator_addresses, alias_balances, delegations, withdrawals)
+        logging.info("Done init task!")
 
         return TaskResult(
             self.task_name,
@@ -164,7 +171,6 @@ class Init(Task):
             validator_address = withdrawal[1]
             epoch = withdrawal[2]
             amount = withdrawal[4]
-            active_epoch = withdrawal[3]
 
             delegator_account = Account.get_by_address(delegator_address)
             validator_account = Validator.get_by_address(validator_address)

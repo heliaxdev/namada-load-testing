@@ -35,7 +35,7 @@ class Manager:
         rmtree("logs/{}".format(seed), ignore_errors=True)
 
         Path("db.db").unlink(missing_ok=True)
-        connect(seed)
+        connect()
 
     def run(self, base_directory: str, base_binary: str, fail_fast: bool):
         nodes = self.config.get_nodes()
@@ -69,6 +69,7 @@ class Manager:
                 logging.info("{0} - Successfully completed {1} ({2}s)".format(index, task_result.task_name, task_result.time_elapsed))
                 self.stats[task_result.task_name]['succeeded'] += 1
 
+        logging.info("Load testing completed!")
         self.print_stats()
 
     @staticmethod

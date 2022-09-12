@@ -1,6 +1,6 @@
 # Namada Load Testing
 
-A configurable load testing tool for namada networks.
+A configurable load testing tool for Namada networks.
 
 ## Setup
 
@@ -11,4 +11,12 @@ A configurable load testing tool for namada networks.
 
 ## Run
 
-- `poetry run python3 main.py --config-path $path_to_config.yaml`
+- `./run.sh $namada_folder $binary_folder $config_path [--fail-fast]`
+
+## Transaction types
+
+- `Faucet`
+- `Transfer`
+- `Delegate`
+- `Unbond`
+- `Withdraw`
