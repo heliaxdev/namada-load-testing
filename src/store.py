@@ -1,6 +1,9 @@
 import os
+from typing import List
 
 from peewee import SqliteDatabase, Model, CharField, IntegerField, fn, ForeignKeyField
+
+from src.constants import TOKENS
 
 db_name = os.getenv('DB_NAME', 'db.db')
 db: SqliteDatabase = SqliteDatabase(db_name)
@@ -26,12 +29,12 @@ class Account(BaseModel):
         return cls.select().order_by(fn.Random()).get()
 
     @classmethod
-    def get_random_account_with_positive_balance(cls):
-        return cls.get_random_account_with_balance_grater_than(0)
+    def get_random_account_with_positive_balance(cls, tokens: List[str] = TOKENS):
+        return cls.get_random_account_with_balance_grater_than(0, tokens)
 
     @classmethod
-    def get_random_account_with_balance_grater_than(cls, amount: int):
-        return cls.select().where(cls.amount > amount).order_by(fn.Random()).get_or_none()
+    def get_random_account_with_balance_grater_than(cls, amount: int, tokens: List[str] = TOKENS):
+        return cls.select().where(cls.amount > amount, cls.token << tokens).order_by(fn.Random()).get_or_none()
 
     @classmethod
     def get_by_address(cls, address: str):
@@ -72,10 +75,7 @@ class Delegation(BaseModel):
 
     @classmethod
     def get_random_valid_delegation(cls, current_epoch: int):
-        return cls.select().where(
-                (cls.epoch < current_epoch) &
-                (cls.amount < 10000)
-        ).order_by(fn.Random()).get_or_none()
+        return cls.select().where(cls.epoch < current_epoch, cls.amount < 50000).order_by(fn.Random()).get_or_none()
 
 
 class Withdrawal(BaseModel):
@@ -111,6 +111,21 @@ class Proposal(BaseModel):
     voting_start_epoch = IntegerField()
     voting_end_epoch = IntegerField()
     grace_epoch = IntegerField()
+
+    @classmethod
+    def create_proposal(cls, proposal_id: int, author_id: int, voting_start_epoch: int, voting_end_epoch: int, grace_epoch: int):
+        return cls.create(proposal_id=proposal_id, author_id=author_id, voting_start_epoch=voting_start_epoch, voting_end_epoch=voting_end_epoch, grace_epoch=grace_epoch)
+
+    @classmethod
+    def total_proposals(cls):
+        return cls.select().count()
+
+    @classmethod
+    def get_random_votable_proposal(cls, epoch: int):
+        return cls.select().where(
+            cls.voting_start_epoch <= epoch,
+            cls.voting_end_epoch >= epoch - 2, # this is done to avoid an epoch change during vote transactions
+        ).order_by(fn.Random()).get_or_none()
 
 
 def connect():

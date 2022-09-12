@@ -62,4 +62,10 @@ class ClientCommands(Command):
     def withdraw(self, from_alias: str, to_validator: str, ledger_address: str):
         return self._get_full_command(self.sub_binary, "withdraw --source {0} --validator {1}".format(from_alias, to_validator), ledger_address)
 
+    def init_proposal(self, proposal_path: str, ledger_address: str):
+        return self._get_full_command(self.sub_binary, "init-proposal --data-path {0}".format(proposal_path), ledger_address)
+
+    def vote_proposal(self, proposal_id: int, vote: str, signer: str):
+        return self._get_full_command(self.sub_binary, "vote-proposal --proposal-id {0} --vote {1} --signer {2}".format(proposal_id, vote, signer))
+
 

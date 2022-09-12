@@ -10,14 +10,7 @@ class Transfer(Task):
     def handler(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:
         from_account = Account.get_random_account_with_positive_balance()
         if not from_account:
-            return TaskResult(
-                self.task_name,
-                "",
-                "",
-                "",
-                step_index,
-                self.seed
-            )
+            return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
         to_account = Account.get_random_account()
         token = from_account.token
@@ -26,14 +19,7 @@ class Transfer(Task):
         command = self.client.transfer(from_account.alias, to_account.alias, token, amount, ledger_address)
         is_successful, stdout, stderr = self.execute_command(command)
         if not is_successful:
-            TaskResult(
-                self.task_name,
-                ' '.join(command),
-                stdout,
-                stderr,
-                step_index,
-                self.seed
-            )
+            return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
         changed_rows = Account.update_account_balance(from_account.alias, token, -amount)
         self.assert_row_affected(1, changed_rows)

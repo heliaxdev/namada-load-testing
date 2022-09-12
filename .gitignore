@@ -312,3 +312,4 @@ configs/*.yaml
 logs/*
 !logs/.keep
 *.db
+proposal.json

@@ -18,14 +18,7 @@ class Withdraw(Task):
 
         withdraw = Withdrawal.get_random_withdrawable_withdraw(current_epoch)
         if not withdraw:
-            return TaskResult(
-                self.task_name,
-                "",
-                "",
-                "",
-                step_index,
-                self.seed
-            )
+            return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
         delegation_account = Account.get_by_id(withdraw.account_id)
         validator_account = Validator.get_by_id(withdraw.validator_id)
@@ -37,14 +30,7 @@ class Withdraw(Task):
         is_successful, stdout, stderr = self.execute_command(command)
 
         if not is_successful:
-            TaskResult(
-                self.task_name,
-                ' '.join(command),
-                stdout,
-                stderr,
-                step_index,
-                self.seed
-            )
+            return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
         # workaround cause I can't understand how to get the correct withdrawal epoch
         bond_command = self.client.get_delegations(ledger_address)

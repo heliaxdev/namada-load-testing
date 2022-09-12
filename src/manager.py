@@ -13,8 +13,10 @@ from src.task import Task
 from src.tasks.delegate import Delegate
 from src.tasks.faucet import Faucet
 from src.tasks.init import Init
+from src.tasks.init_proposal import InitProposal
 from src.tasks.transfer import Transfer
 from src.tasks.unbond import Unbond
+from src.tasks.vote_proposal import VoteProposal
 
 from src.tasks.withdraw import Withdraw
 
@@ -89,6 +91,8 @@ class Manager:
     @staticmethod
     def _build_all_tasks(base_directory: str, base_binary: str, seed: int) -> Dict[str, Task]:
         return {
+            'VoteProposal': VoteProposal('VoteProposal', base_directory, base_binary, seed),
+            'InitProposal': InitProposal('InitProposal', base_directory, base_binary, seed),
             'Withdraw': Withdraw('Withdraw', base_directory, base_binary, seed),
             'Unbond': Unbond('Unbond', base_directory, base_binary, seed),
             'Delegate': Delegate('Delegate', base_directory, base_binary, seed),
