@@ -1,3 +1,4 @@
+import logging
 import os
 from dataclasses import dataclass, field
 import random
@@ -52,17 +53,20 @@ class Manager:
         for index in range(1, total_transactions + 1):
             node_address = self._get_random_node_address(nodes)
             next_task = self._get_next_task(task_types, task_probabilities, all_tasks)
+            logging.info("{} - Running {} against {}".format(index, next_task.task_name, node_address))
             task_result = next_task.run(index, base_directory, node_address, dry_run)
             task_result.dump()
 
             if task_result.is_error() and fail_fast:
-                print("Index: {}, Task: {}, Error: {}".format(task_result.index, task_result.task_name, task_result.stderr))
+                logging.info("{0} - Failed {1} ({2}s)".format(index, task_result.task_name, task_result.time_elapsed))
                 self.stats[task_result.task_name]['failed'] += 1
                 self.print_stats()
                 exit(1)
             elif task_result.is_error():
+                logging.info("{0} - Successfully completed {1} ({2}s)".format(index, task_result.task_name, task_result.time_elapsed))
                 self.stats[task_result.task_name]['failed'] += 1
             else:
+                logging.info("{0} - Successfully completed {1} ({2}s)".format(index, task_result.task_name, task_result.time_elapsed))
                 self.stats[task_result.task_name]['succeeded'] += 1
 
         self.print_stats()

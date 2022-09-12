@@ -6,8 +6,8 @@ from src.manager import Manager
 from src.config import Config
 
 
-LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO').upper()
-logging.basicConfig(level=LOGLEVEL)
+log_level = os.environ.get('LOGLEVEL', 'INFO').upper()
+logging.basicConfig(level=log_level)
 
 
 def run(args: argparse.Namespace):

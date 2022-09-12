@@ -311,4 +311,4 @@ cython_debug/
 configs/*.yaml
 logs/*
 !logs/.keep
-db.db
+*.db

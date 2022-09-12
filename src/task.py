@@ -1,9 +1,10 @@
 import json
 import os
 import subprocess
+import time
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
-from typing import Tuple, List
+from typing import Tuple, List, Union
 
 from src.commands import WalletCommands, ClientCommands
 from src.constants import VALID_TRANSACTION_OUTPUT, INVALID_TRANSACTION_OUTPUT, INVALID_TRANSACTION_EXECUTION_OUTPUT
@@ -18,6 +19,7 @@ class TaskResult:
     stderr: str
     index: int
     seed: int
+    time_elapsed: float = field(init=False)
 
     def is_error(self):
         return len(self.stderr) > 0
@@ -31,6 +33,13 @@ class TaskResult:
             'index': self.index,
             'seed': self.seed,
         }
+
+    def set_time_elapsed(self, start_time: float, end_time: Union[float, None]):
+        if end_time is None:
+            self.time_elapsed = time.time() - start_time
+        else:
+            self.time_elapsed = end_time - start_time
+        return self
 
     def dump(self):
         folder = 'success' if not self.is_error() else 'failed'
@@ -57,8 +66,8 @@ class Task(ABC):
         self.parser = Parser()
 
     def run(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:
-        print("{} - Running {}".format(step_index, self.task_name))
-        return self.handler(step_index, base_directory, ledger_address, dry_run)
+        start_time = time.time()
+        return self.handler(step_index, base_directory, ledger_address, dry_run).set_time_elapsed(start_time, None)
 
     @abstractmethod
     def handler(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:

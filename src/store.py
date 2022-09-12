@@ -100,6 +100,10 @@ class Withdrawal(BaseModel):
             cls.validator_id == validator_id
         ).order_by(cls.epoch).execute()
 
+    @classmethod
+    def delete_all(cls):
+        return cls.delete().execute()
+
 
 def connect(seed: str):
     db.connect()

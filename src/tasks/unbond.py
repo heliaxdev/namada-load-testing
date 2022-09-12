@@ -50,7 +50,7 @@ class Unbond(Task):
         _, stdout_bond, stderr_bond = self.execute_command(bond_command)
 
         withdrawals = self.parser.parse_client_withdrawals(stdout_bond)
-        Withdrawal.delete().execute()
+        Withdrawal.delete_all()
         for withdrawal in withdrawals:
             delegation_account = Account.get_by_address(withdrawal[0])
             validator_account = Validator.get_by_address(withdrawal[1])

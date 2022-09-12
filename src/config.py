@@ -1,3 +1,4 @@
+import sys
 from dataclasses import dataclass
 from typing import Dict, List, Union
 
@@ -17,7 +18,8 @@ class Config:
         return self.data['settings']
 
     def get_total_transaction(self) -> int:
-        return self.get_settings()['max']
+        total_tx = sys.maxsize if self.get_settings()['total_tx'] == -1 else self.get_settings()['total_tx']
+        return total_tx
 
     def get_seed(self) -> int:
         return self.get_settings()['seed']

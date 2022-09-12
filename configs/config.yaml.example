@@ -16,4 +16,4 @@ tasks:
 settings:
   seed: 1337
   dry_run: false
-  max: 150
+  total_tx: 150
