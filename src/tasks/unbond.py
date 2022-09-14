@@ -20,14 +20,7 @@ class Unbond(Task):
 
         delegation = Delegation.get_random_valid_delegation(current_epoch)
         if not delegation:
-            return TaskResult(
-                self.task_name,
-                "",
-                "",
-                "",
-                step_index,
-                self.seed
-            )
+            return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
         delegation_account = Account.get_by_id(delegation.account_id)
         validator_account = Validator.get_by_id(delegation.validator_id)
@@ -36,14 +29,7 @@ class Unbond(Task):
         is_successful, stdout, stderr = self.execute_command(command)
 
         if not is_successful:
-            TaskResult(
-                self.task_name,
-                ' '.join(command),
-                stdout,
-                stderr,
-                step_index,
-                self.seed
-            )
+            return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
         # workaround cause I can't understand how to get the correct withdrawal epoch
         bond_command = self.client.get_delegations(ledger_address)
@@ -59,11 +45,4 @@ class Unbond(Task):
 
         Delegation.delete_by_id(delegation.get_id())
 
-        return TaskResult(
-            self.task_name,
-            ' '.join(command),
-            stdout,
-            stderr,
-            step_index,
-            self.seed
-        )
+        return TaskResult(self.task_name, ' '.join(command), stdout, stderr, step_index, self.seed)

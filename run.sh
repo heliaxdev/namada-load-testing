@@ -4,7 +4,7 @@ CONFIG_NAME=${3:-config.yaml}
 FAIL_FAST=${4:--no-fail-fast}
 
 DB_NAME="$(echo $RANDOM | md5sum | head -c 20; echo;).db"
-export DB_FULLNAME
+export DB_NAME
 
 echo "Using database ${DB_NAME}..."
 

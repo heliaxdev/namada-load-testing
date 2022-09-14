@@ -20,3 +20,5 @@ A configurable load testing tool for Namada networks.
 - `Delegate`
 - `Unbond`
 - `Withdraw`
+- `InitProposal`
+- `VoteProposal`

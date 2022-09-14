@@ -5,7 +5,7 @@ from random import choice
 from typing import Tuple, List, Dict
 
 from src.constants import TOKENS, ACCOUNT_FORMAT
-from src.store import Account, Validator, Delegation, Withdrawal
+from src.store import Account, Validator, Delegation, Withdrawal, Proposal
 from src.task import Task, TaskResult
 
 
@@ -21,22 +21,17 @@ class Init(Task):
         delegations = self._get_delegations(addresses, validator_addresses, ledger_address)
         logging.info("Setting up withdrawals...")
         withdrawals = self._get_withdrawals(addresses, validator_addresses, ledger_address)
+        logging.info("Setting up proposals...")
+        proposals = self._get_all_proposals(ledger_address)
 
         logging.info("Setting up accounts...")
         self._setup_accounts(aliases, addresses, ledger_address)
         alias_balances = self._get_all_balances(aliases, ledger_address)
         logging.info("Init storage...")
-        self._init_storage(aliases, addresses, validator_addresses, alias_balances, delegations, withdrawals)
+        self._init_storage(aliases, addresses, validator_addresses, alias_balances, delegations, withdrawals, proposals)
         logging.info("Done init task!")
 
-        return TaskResult(
-            self.task_name,
-            "",
-            "",
-            "",
-            step_index,
-            self.seed
-        )
+        return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
     def _get_all_alias_and_addresses(self) -> Tuple[List[str], List[str]]:
         command = self.wallet.address_list()
@@ -77,6 +72,15 @@ class Init(Task):
             owner_balances = self.parser.parse_client_balance_owner(stdout)
             balance_map[alias] = owner_balances
         return balance_map
+
+    def _get_all_proposals(self, ledger_address: str) -> List[Tuple[int, str, int, int, str]]:
+        command = self.client.get_proposal(None, ledger_address)
+        is_successful, stdout, stderr = self.execute_command(command)
+
+        if not is_successful:
+            raise Exception("Can't get proposals")
+
+        return self.parser.parse_client_proposals(stdout)
 
     def _setup_accounts(self, aliases: List[str], addresses: List[str], ledger_address: str):
         i = len(aliases)
@@ -145,7 +149,7 @@ class Init(Task):
         return filtered_withdrawals
 
     @staticmethod
-    def _init_storage(aliases: List[str], addresses: List[str], validator_addresses: List[str], alias_balances: Dict[str, Dict[str, int]], delegations: List[Tuple[str, str, int, int]], withdrawals: List[Tuple[str, str, int, int, int]]):
+    def _init_storage(aliases: List[str], addresses: List[str], validator_addresses: List[str], alias_balances: Dict[str, Dict[str, int]], delegations: List[Tuple[str, str, int, int]], withdrawals: List[Tuple[str, str, int, int, int]], proposals: List[Tuple[int, str, int, int, str]]):
         for account in zip(aliases, addresses):
             alias, address = account
             for token in TOKENS:
@@ -176,6 +180,19 @@ class Init(Task):
             validator_account = Validator.get_by_address(validator_address)
 
             Withdrawal.create_withdrawal(delegator_account.get_id(), validator_account.get_id(), amount, epoch)
+
+        for proposal in proposals:
+            proposal_id = proposal[0]
+            proposal_author = proposal[1]
+            proposal_start_epoch = proposal[2]
+            proposal_end_epoch = proposal[3]
+            proposal_status = proposal[4]
+
+            if proposal_status != 'pending' and proposal_status != 'on-going':
+                continue
+
+            proposer_account = Account.get_by_address(proposal_author)
+            Proposal.create_proposal(proposal_id=proposal_id, author_id=proposer_account.get_id(), voting_start_epoch=proposal_start_epoch, voting_end_epoch=proposal_end_epoch)
 
     @staticmethod
     def _generate_alias(seed: int) -> str:

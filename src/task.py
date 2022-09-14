@@ -47,7 +47,7 @@ class TaskResult:
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         log = self.serialize()
         with open(file_path, "w") as f:
-            f.write(json.dumps(log))
+            f.write(json.dumps(log, sort_keys=True, indent=4))
 
 
 @dataclass

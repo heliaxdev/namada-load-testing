@@ -12,14 +12,7 @@ class Delegate(Task):
     def handler(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:
         delegator = Account.get_random_account_with_balance_grater_than(self.BOND_AMOUNT * 2)
         if not delegator:
-            return TaskResult(
-                self.task_name,
-                "",
-                "",
-                "",
-                step_index,
-                self.seed
-            )
+            return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
         validator = Validator.get_random_validator()
         amount = self.BOND_AMOUNT
@@ -28,14 +21,7 @@ class Delegate(Task):
         is_successful, stdout, stderr = self.execute_command(command)
 
         if not is_successful:
-            TaskResult(
-                self.task_name,
-                ' '.join(command),
-                stdout,
-                stderr,
-                step_index,
-                self.seed
-            )
+            return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
         tx_epoch_execution = self.parser.parse_epoch_from_tx_execution(stdout)
 
@@ -43,11 +29,4 @@ class Delegate(Task):
         affected_rows = Account.update_account_balance(delegator.alias, 'XAN', -amount)
         self.assert_row_affected(affected_rows, 1)
 
-        return TaskResult(
-            self.task_name,
-            ' '.join(command),
-            stdout,
-            stderr,
-            step_index,
-            self.seed
-        )
+        return TaskResult(self.task_name, ' '.join(command), stdout, stderr, step_index, self.seed)
