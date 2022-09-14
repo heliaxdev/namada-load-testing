@@ -26,14 +26,14 @@ class Manager:
     config: Config
     all_tasks: Dict = field(init=False)
     stats: Dict = field(init=False)
-    random: random.Random = field(init=False)
+    r: random.Random = field(init=False)
 
     def __post_init__(self):
         tasks = self.config.get_tasks()
         self.stats = {task_name: {'succeeded': 0, 'failed': 0} for task_name in [task['type'] for task in tasks]}
 
         seed = self.config.get_seed()
-        self.random = random.Random(seed)
+        self.r = random.Random(seed)
         random.seed(seed)
 
         rmtree("logs/{}".format(seed), ignore_errors=True)
@@ -81,7 +81,7 @@ class Manager:
         return random.choice(nodes)
 
     def _get_next_task(self, task_types: List[str], task_probabilities: List[int], all_tasks: Dict[str, Task]) -> Task:
-        return all_tasks[self.random.choices(task_types, task_probabilities).pop()]
+        return all_tasks[self.r.choices(task_types, task_probabilities).pop()]
 
     @staticmethod
     def _build_task_with_probabilities(tasks: List[Dict[str, Union[str, int]]]) -> Tuple[List[str], List[int]]:

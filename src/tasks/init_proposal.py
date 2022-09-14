@@ -68,7 +68,8 @@ class InitProposal(Task):
         if not is_successful:
             return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
-        proposal_id = Proposal.get_last_proposal_id() + 1
+        proposal_id = Proposal.get_last_proposal_id()
+        proposal_id = 0 if not proposal_id and proposal_id != 0 else proposal_id + 1
 
         Proposal.create_proposal(proposal_id, proposer_account.get_id(), voting_start_epoch, voting_end_epoch)
         affected_rows = Account.update_account_balance(proposer_account.alias, 'XAN', -self.PROPOSAL_MIN_FUNDS)

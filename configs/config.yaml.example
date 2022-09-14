@@ -3,19 +3,19 @@ nodes:
 
 tasks:
   - type: Faucet
-    probability: 1
+    probability: 10
   - type: Transfer
-    probability: 1
+    probability: 5
   - type: Delegate
-    probability: 1
+    probability: 8
   - type: Unbond
-    probability: 1
+    probability: 3
   - type: Withdraw
-    probability: 1
+    probability: 3
   - type: InitProposal
-    probability: 1
+    probability: 8
   - type: VoteProposal
-    probability: 1
+    probability: 4
 
 settings:
   seed: 1337
