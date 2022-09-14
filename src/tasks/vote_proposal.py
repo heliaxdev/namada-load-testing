@@ -30,17 +30,10 @@ class VoteProposal(Task):
         delegation_account = Account.get_by_id(delegation.account_id)
         vote = random.choice(self.votes)
 
-        command = self.client.vote_proposal(proposal.proposal_id, vote, delegation_account.alias)
+        command = self.client.vote_proposal(proposal.proposal_id, vote, delegation_account.alias, ledger_address)
         is_successful, stdout, stderr = self.execute_command(command)
 
         if not is_successful:
             return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
-        return TaskResult(
-            self.task_name,
-            ' '.join(command),
-            stdout,
-            stderr,
-            step_index,
-            self.seed
-        )
+        return TaskResult(self.task_name, ' '.join(command), stdout, stderr, step_index, self.seed)

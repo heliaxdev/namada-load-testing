@@ -45,11 +45,4 @@ class Unbond(Task):
 
         Delegation.delete_by_id(delegation.get_id())
 
-        return TaskResult(
-            self.task_name,
-            ' '.join(command),
-            stdout,
-            stderr,
-            step_index,
-            self.seed
-        )
+        return TaskResult(self.task_name, ' '.join(command), stdout, stderr, step_index, self.seed)

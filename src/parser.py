@@ -92,10 +92,25 @@ class Parser:
         return withdrawals
 
     @staticmethod
+    def parse_client_proposals(output: str) -> List[Tuple[int, str, int, int, str]]:
+        proposals = []
+        output = output.splitlines()[2:]
+        for index, line in enumerate(output[::5]):
+            proposal_id = int(line.split(': ')[1])
+            status = output[4 + index * 5].split(': ')[1].strip()
+            author = output[1 + index * 5].split(': ')[1].strip()
+            start_epoch = int(output[2 + index * 5].split(': ')[1].strip())
+            end_epoch = int(output[3 + index * 5].split(': ')[1].strip())
+            proposals.append((proposal_id, author, start_epoch, end_epoch, status))
+
+        return proposals
+
+    @staticmethod
     def parse_epoch_from_tx_execution(output: str) -> int:
         for line in output.splitlines():
             if line.strip().startswith('Last committed epoch'):
                 return int(line.split(': ')[1])
+        # very unsafe but it should never happen
         return None
 
     @staticmethod

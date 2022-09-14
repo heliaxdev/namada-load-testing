@@ -110,21 +110,24 @@ class Proposal(BaseModel):
     author = ForeignKeyField(Account, to_field='id')
     voting_start_epoch = IntegerField()
     voting_end_epoch = IntegerField()
-    grace_epoch = IntegerField()
 
     @classmethod
-    def create_proposal(cls, proposal_id: int, author_id: int, voting_start_epoch: int, voting_end_epoch: int, grace_epoch: int):
-        return cls.create(proposal_id=proposal_id, author_id=author_id, voting_start_epoch=voting_start_epoch, voting_end_epoch=voting_end_epoch, grace_epoch=grace_epoch)
+    def create_proposal(cls, proposal_id: int, author_id: int, voting_start_epoch: int, voting_end_epoch: int):
+        return cls.create(proposal_id=proposal_id, author_id=author_id, voting_start_epoch=voting_start_epoch, voting_end_epoch=voting_end_epoch)
 
     @classmethod
     def total_proposals(cls):
         return cls.select().count()
 
     @classmethod
+    def get_last_proposal_id(cls):
+        return cls.select(fn.MAX(cls.proposal_id)).scalar()
+
+    @classmethod
     def get_random_votable_proposal(cls, epoch: int):
         return cls.select().where(
             cls.voting_start_epoch <= epoch,
-            cls.voting_end_epoch >= epoch - 2, # this is done to avoid an epoch change during vote transactions
+            cls.voting_end_epoch >= epoch, # this is done to avoid an epoch change during vote transactions
         ).order_by(fn.Random()).get_or_none()
 
 

@@ -68,20 +68,12 @@ class InitProposal(Task):
         if not is_successful:
             return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
-        proposal_id = Proposal.total_proposals()
+        proposal_id = Proposal.get_last_proposal_id() + 1
 
-        Proposal.create_proposal(proposal_id, proposer_account.get_id(), voting_start_epoch, voting_end_epoch, grace_epoch)
+        Proposal.create_proposal(proposal_id, proposer_account.get_id(), voting_start_epoch, voting_end_epoch)
         affected_rows = Account.update_account_balance(proposer_account.alias, 'XAN', -self.PROPOSAL_MIN_FUNDS)
-        print(affected_rows)
         self.assert_row_affected(affected_rows, 1)
 
-        return TaskResult(
-            self.task_name,
-            ' '.join(command),
-            stdout,
-            stderr,
-            step_index,
-            self.seed
-        )
+        return TaskResult(self.task_name, ' '.join(command), stdout, stderr, step_index, self.seed)
 
 

@@ -4,18 +4,20 @@ nodes:
 tasks:
   - type: Faucet
     probability: 1
-#  - type: Transfer
-#    probability: 0
-#  - type: Delegate
-#    probability: 30
-#  - type: Unbond
-#    probability: 30
-#  - type: Withdraw
-#    probability: 30
+  - type: Transfer
+    probability: 1
+  - type: Delegate
+    probability: 1
+  - type: Unbond
+    probability: 1
+  - type: Withdraw
+    probability: 1
   - type: InitProposal
+    probability: 1
+  - type: VoteProposal
     probability: 1
 
 settings:
   seed: 1337
   dry_run: false
-  total_tx: 150
+  total_tx: -1

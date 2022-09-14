@@ -29,11 +29,4 @@ class Delegate(Task):
         affected_rows = Account.update_account_balance(delegator.alias, 'XAN', -amount)
         self.assert_row_affected(affected_rows, 1)
 
-        return TaskResult(
-            self.task_name,
-            ' '.join(command),
-            stdout,
-            stderr,
-            step_index,
-            self.seed
-        )
+        return TaskResult(self.task_name, ' '.join(command), stdout, stderr, step_index, self.seed)
