@@ -188,8 +188,8 @@ class Init(Task):
             proposal_end_epoch = proposal[3]
             proposal_status = proposal[4]
 
-            if proposal_status != 'pending' and proposal_status != 'on-going':
-                continue
+            # if proposal_status != 'pending' and proposal_status != 'on-going':
+            #     continue
 
             proposer_account = Account.get_by_address(proposal_author)
             Proposal.create_proposal(proposal_id=proposal_id, author_id=proposer_account.get_id(), voting_start_epoch=proposal_start_epoch, voting_end_epoch=proposal_end_epoch)
