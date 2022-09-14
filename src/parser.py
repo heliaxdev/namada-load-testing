@@ -59,7 +59,8 @@ class Parser:
                 tmp = line.split(' ')
                 delegator_address = Parser._remove_symbols(tmp[2])
                 validator_address = Parser._remove_symbols(tmp[5])
-            elif line.strip().startswith('Active') and (delegator_address is not None and validator_address is not None):
+            elif line.strip().startswith('Active') and (
+                    delegator_address is not None and validator_address is not None):
                 tmp = line.strip().split()
                 epoch = Parser._remove_symbols(tmp[3])
                 amount = Parser._remove_symbols(tmp[5])
@@ -80,7 +81,8 @@ class Parser:
                 tmp = line.split(' ')
                 delegator_address = Parser._remove_symbols(tmp[3])
                 validator_address = Parser._remove_symbols(tmp[6])
-            elif line.strip().startswith('Withdrawable from') and (delegator_address is not None and validator_address is not None):
+            elif line.strip().startswith('Withdrawable from') and (
+                    delegator_address is not None and validator_address is not None):
                 tmp = line.strip().split()
                 epoch = Parser._remove_symbols(tmp[3])
                 epoch_active = Parser._remove_symbols(tmp[6])

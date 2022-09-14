@@ -10,11 +10,11 @@ class Delegate(Task):
     ACTIVE_EPOCH_WAIT: int = 2
 
     def handler(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:
-        delegator = Account.get_random_account_with_balance_grater_than(self.BOND_AMOUNT * 2)
+        delegator = Account.get_random_account_with_balance_grater_than(self.BOND_AMOUNT * 2, self.seed)
         if not delegator:
             return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
-        validator = Validator.get_random_validator()
+        validator = Validator.get_random_validator(self.seed)
         amount = self.BOND_AMOUNT
 
         command = self.client.bond(delegator.alias, validator.address, amount, ledger_address)
@@ -25,8 +25,9 @@ class Delegate(Task):
 
         tx_epoch_execution = self.parser.parse_epoch_from_tx_execution(stdout)
 
-        Delegation.create_delegation(delegator.get_id(), validator.get_id(), amount, tx_epoch_execution + self.ACTIVE_EPOCH_WAIT)
-        affected_rows = Account.update_account_balance(delegator.alias, 'XAN', -amount)
+        Delegation.create_delegation(delegator.get_id(), validator.get_id(), amount,
+                                     tx_epoch_execution + self.ACTIVE_EPOCH_WAIT, self.seed)
+        affected_rows = Account.update_account_balance(delegator.alias, 'XAN', -amount, self.seed)
         self.assert_row_affected(affected_rows, 1)
 
         return TaskResult(self.task_name, ' '.join(command), stdout, stderr, step_index, self.seed)

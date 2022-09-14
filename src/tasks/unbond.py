@@ -18,14 +18,15 @@ class Unbond(Task):
 
         current_epoch = self.parser.parse_client_epoch(epoch_stdout)
 
-        delegation = Delegation.get_random_valid_delegation(current_epoch)
+        delegation = Delegation.get_random_valid_delegation(current_epoch, self.seed)
         if not delegation:
             return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
         delegation_account = Account.get_by_id(delegation.account_id)
         validator_account = Validator.get_by_id(delegation.validator_id)
 
-        command = self.client.unbond(delegation_account.alias, validator_account.address, delegation.amount, ledger_address)
+        command = self.client.unbond(delegation_account.alias, validator_account.address, delegation.amount,
+                                     ledger_address)
         is_successful, stdout, stderr = self.execute_command(command)
 
         if not is_successful:
@@ -36,12 +37,13 @@ class Unbond(Task):
         _, stdout_bond, stderr_bond = self.execute_command(bond_command)
 
         withdrawals = self.parser.parse_client_withdrawals(stdout_bond)
-        Withdrawal.delete_all()
+        Withdrawal.delete_all(self.seed)
         for withdrawal in withdrawals:
-            delegation_account = Account.get_by_address(withdrawal[0])
-            validator_account = Validator.get_by_address(withdrawal[1])
+            delegation_account = Account.get_by_address(withdrawal[0], self.seed)
+            validator_account = Validator.get_by_address(withdrawal[1], self.seed)
             if delegation_account is not None and validator_account is not None:
-                Withdrawal.create_withdrawal(delegation_account.get_id(), validator_account.get_id(), withdrawal[4], withdrawal[2])
+                Withdrawal.create_withdrawal(delegation_account.get_id(), validator_account.get_id(), withdrawal[4],
+                                             withdrawal[2], self.seed)
 
         Delegation.delete_by_id(delegation.get_id())
 

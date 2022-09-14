@@ -18,6 +18,5 @@ tasks:
     probability: 4
 
 settings:
-  seed: 1337
   dry_run: false
-  total_tx: -1
+  total_tx: 20

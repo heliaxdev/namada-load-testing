@@ -43,7 +43,8 @@ class InitProposal(Task):
 
         current_epoch = self.parser.parse_client_epoch(epoch_stdout)
 
-        proposer_account = Account.get_random_account_with_balance_grater_than(self.PROPOSAL_MIN_FUNDS, ['XAN'])
+        proposer_account = Account.get_random_account_with_balance_grater_than(self.PROPOSAL_MIN_FUNDS, self.seed,
+                                                                               ['XAN'])
         if proposer_account is None:
             return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
@@ -68,13 +69,13 @@ class InitProposal(Task):
         if not is_successful:
             return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
-        proposal_id = Proposal.get_last_proposal_id()
+        proposal_id = Proposal.get_last_proposal_id(self.seed)
         proposal_id = 0 if not proposal_id and proposal_id != 0 else proposal_id + 1
 
-        Proposal.create_proposal(proposal_id, proposer_account.get_id(), voting_start_epoch, voting_end_epoch)
-        affected_rows = Account.update_account_balance(proposer_account.alias, 'XAN', -self.PROPOSAL_MIN_FUNDS)
+        Proposal.create_proposal(proposal_id, proposer_account.get_id(), voting_start_epoch, voting_end_epoch,
+                                 self.seed)
+        affected_rows = Account.update_account_balance(proposer_account.alias, 'XAN', -self.PROPOSAL_MIN_FUNDS,
+                                                       self.seed)
         self.assert_row_affected(affected_rows, 1)
 
         return TaskResult(self.task_name, ' '.join(command), stdout, stderr, step_index, self.seed)
-
-
