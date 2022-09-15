@@ -16,14 +16,16 @@ class Withdraw(Task):
 
         current_epoch = self.parser.parse_client_epoch(epoch_stdout)
 
-        withdraw = Withdrawal.get_random_withdrawable_withdraw(current_epoch)
+        withdraw = Withdrawal.get_random_withdrawable_withdraw(current_epoch, self.seed)
         if not withdraw:
             return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
         delegation_account = Account.get_by_id(withdraw.account_id)
         validator_account = Validator.get_by_id(withdraw.validator_id)
 
-        compatible_withdraws = Withdrawal.get_compatible_withdrawals(delegation_account.get_id(), validator_account.get_id(),current_epoch)
+        compatible_withdraws = Withdrawal.get_compatible_withdrawals(delegation_account.get_id(),
+                                                                     validator_account.get_id(), current_epoch,
+                                                                     self.seed)
         withdrawable_sum = sum([withdraw.amount for withdraw in compatible_withdraws])
 
         command = self.client.withdraw(delegation_account.alias, validator_account.address, ledger_address)
@@ -36,15 +38,16 @@ class Withdraw(Task):
         bond_command = self.client.get_delegations(ledger_address)
         _, stdout_bond, _ = self.execute_command(bond_command)
 
-        Withdrawal.delete_all()
+        Withdrawal.delete_all(self.seed)
         withdrawals = self.parser.parse_client_withdrawals(stdout_bond)
         for withdrawal in withdrawals:
-            delegation_account = Account.get_by_address(withdrawal[0])
-            validator_account = Validator.get_by_address(withdrawal[1])
+            delegation_account = Account.get_by_address(withdrawal[0], self.seed)
+            validator_account = Validator.get_by_address(withdrawal[1], self.seed)
             if delegation_account is not None and validator_account is not None:
-                Withdrawal.create_withdrawal(delegation_account.get_id(), validator_account.get_id(), withdrawal[4], withdrawal[2])
+                Withdrawal.create_withdrawal(delegation_account.get_id(), validator_account.get_id(), withdrawal[4],
+                                             withdrawal[2], self.seed)
 
-        affected_rows = Account.update_account_balance(delegation_account.alias, 'XAN', withdrawable_sum)
+        affected_rows = Account.update_account_balance(delegation_account.alias, 'XAN', withdrawable_sum, self.seed)
         self.assert_row_affected(affected_rows, 1)
 
         return TaskResult(self.task_name, ' '.join(command), stdout, stderr, step_index, self.seed)

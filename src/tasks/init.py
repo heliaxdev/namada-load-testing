@@ -2,6 +2,7 @@ import logging
 import string
 from dataclasses import dataclass
 from random import choice
+from time import sleep
 from typing import Tuple, List, Dict
 
 from src.constants import TOKENS, ACCOUNT_FORMAT
@@ -15,21 +16,21 @@ class Init(Task):
 
     def handler(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:
         aliases, addresses = self._get_all_alias_and_addresses()
-        logging.info("Setting up validators...")
+        # logging.info("Setting up validators...")
         validator_addresses = self._get_all_validators(ledger_address)
-        logging.info("Setting up delegations...")
+        # logging.info("Setting up delegations...")
         delegations = self._get_delegations(addresses, validator_addresses, ledger_address)
-        logging.info("Setting up withdrawals...")
+        # logging.info("Setting up withdrawals...")
         withdrawals = self._get_withdrawals(addresses, validator_addresses, ledger_address)
-        logging.info("Setting up proposals...")
+        # logging.info("Setting up proposals...")
         proposals = self._get_all_proposals(ledger_address)
 
-        logging.info("Setting up accounts...")
+        # logging.info("Setting up accounts...")
         self._setup_accounts(aliases, addresses, ledger_address)
         alias_balances = self._get_all_balances(aliases, ledger_address)
-        logging.info("Init storage...")
+        # logging.info("Init storage...")
         self._init_storage(aliases, addresses, validator_addresses, alias_balances, delegations, withdrawals, proposals)
-        logging.info("Done init task!")
+        # logging.info("Done init task!")
 
         return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
@@ -110,7 +111,8 @@ class Init(Task):
 
         return account_alias, account_address
 
-    def _get_delegations(self, account_addresses: List[str], validator_addresses: List[str], ledger_address: str) -> List[Tuple[str, str, int, int]]:
+    def _get_delegations(self, account_addresses: List[str], validator_addresses: List[str], ledger_address: str) -> \
+            List[Tuple[str, str, int, int]]:
         command = self.client.get_delegations(ledger_address)
         is_successful, stdout, stderr = self.execute_command(command)
 
@@ -129,7 +131,8 @@ class Init(Task):
 
         return filtered_delegations
 
-    def _get_withdrawals(self, account_addresses: List[str], validator_addresses: List[str], ledger_address: str) -> List[Tuple[str, str, int, int, int]]:
+    def _get_withdrawals(self, account_addresses: List[str], validator_addresses: List[str], ledger_address: str) -> \
+            List[Tuple[str, str, int, int, int]]:
         command = self.client.get_delegations(ledger_address)
         is_successful, stdout, stderr = self.execute_command(command)
 
@@ -148,16 +151,18 @@ class Init(Task):
 
         return filtered_withdrawals
 
-    @staticmethod
-    def _init_storage(aliases: List[str], addresses: List[str], validator_addresses: List[str], alias_balances: Dict[str, Dict[str, int]], delegations: List[Tuple[str, str, int, int]], withdrawals: List[Tuple[str, str, int, int, int]], proposals: List[Tuple[int, str, int, int, str]]):
+    def _init_storage(self, aliases: List[str], addresses: List[str], validator_addresses: List[str],
+                      alias_balances: Dict[str, Dict[str, int]], delegations: List[Tuple[str, str, int, int]],
+                      withdrawals: List[Tuple[str, str, int, int, int]],
+                      proposals: List[Tuple[int, str, int, int, str]]):
         for account in zip(aliases, addresses):
             alias, address = account
             for token in TOKENS:
                 token_amount = alias_balances[alias].get(token, 0)
-                Account.create_account(alias, address, token, token_amount)
+                Account.create_account(alias, address, token, token_amount, self.seed)
 
         for address in validator_addresses:
-            Validator.create_validator(address)
+            Validator.create_validator(address, self.seed)
 
         for delegation in delegations:
             delegator_address = delegation[0]
@@ -165,10 +170,14 @@ class Init(Task):
             epoch = delegation[2]
             amount = delegation[3]
 
-            delegator_account = Account.get_by_address(delegator_address)
-            validator_account = Validator.get_by_address(validator_address)
+            delegator_account = Account.get_by_address(delegator_address, self.seed)
+            validator_account = Validator.get_by_address(validator_address, self.seed)
 
-            Delegation.create_delegation(delegator_account.get_id(), validator_account.get_id(), amount, epoch)
+            if validator_account is None or delegator_account is None:
+                continue
+
+            Delegation.create_delegation(delegator_account.get_id(), validator_account.get_id(), amount, epoch,
+                                         self.seed)
 
         for withdrawal in withdrawals:
             delegator_address = withdrawal[0]
@@ -176,10 +185,14 @@ class Init(Task):
             epoch = withdrawal[2]
             amount = withdrawal[4]
 
-            delegator_account = Account.get_by_address(delegator_address)
-            validator_account = Validator.get_by_address(validator_address)
+            delegator_account = Account.get_by_address(delegator_address, self.seed)
+            validator_account = Validator.get_by_address(validator_address, self.seed)
 
-            Withdrawal.create_withdrawal(delegator_account.get_id(), validator_account.get_id(), amount, epoch)
+            if validator_account is None or delegator_account is None:
+                continue
+
+            Withdrawal.create_withdrawal(delegator_account.get_id(), validator_account.get_id(), amount, epoch,
+                                         self.seed)
 
         for proposal in proposals:
             proposal_id = proposal[0]
@@ -188,24 +201,20 @@ class Init(Task):
             proposal_end_epoch = proposal[3]
             proposal_status = proposal[4]
 
-            # if proposal_status != 'pending' and proposal_status != 'on-going':
-            #     continue
+            if proposal_status != 'pending' and proposal_status != 'on-going':
+                continue
 
-            proposer_account = Account.get_by_address(proposal_author)
-            Proposal.create_proposal(proposal_id=proposal_id, author_id=proposer_account.get_id(), voting_start_epoch=proposal_start_epoch, voting_end_epoch=proposal_end_epoch)
+            proposer_account = Account.get_by_address(proposal_author, self.seed)
+            if proposer_account is None:
+                continue
+
+            Proposal.create_proposal(proposal_id, proposer_account.get_id(), proposal_start_epoch, proposal_end_epoch,
+                                     self.seed)
 
     @staticmethod
     def _generate_alias(seed: int) -> str:
-        return "{0}-{1}-{2}-{3}-{4}".format(''.join(choice(string.ascii_lowercase) for x in range(3)),
-                                        ''.join(choice(string.ascii_lowercase) for x in range(3)),
-                                        ''.join(choice(string.ascii_lowercase) for x in range(3)),
-                                        ''.join(choice(string.ascii_lowercase) for x in range(3)),
-                                           seed)
-
-
-
-
-
-
-
-
+        return "{0}-{1}-{2}-{3}-{4}".format(''.join(choice(string.ascii_lowercase) for _ in range(3)),
+                                            ''.join(choice(string.ascii_lowercase) for _ in range(3)),
+                                            ''.join(choice(string.ascii_lowercase) for _ in range(3)),
+                                            ''.join(choice(string.ascii_lowercase) for _ in range(3)),
+                                            seed)

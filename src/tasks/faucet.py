@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 import random
+from dataclasses import dataclass
 
 from src.constants import TOKENS, TOKEN_PROBABILITIES
 from src.store import Account
@@ -11,7 +11,7 @@ class Faucet(Task):
     FAUCET_AMOUNT_LIMIT: int = 1000
 
     def handler(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:
-        account = Account.get_random_account()
+        account = Account.get_random_account(self.seed)
         amount = random.randint(0, self.FAUCET_AMOUNT_LIMIT)
         token = random.choices(TOKENS, TOKEN_PROBABILITIES).pop()
 
@@ -21,7 +21,7 @@ class Faucet(Task):
         if not is_successful:
             return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
-        changed_rows = Account.update_account_balance(account.alias, token, amount)
+        changed_rows = Account.update_account_balance(account.alias, token, amount, self.seed)
         self.assert_row_affected(1, changed_rows)
 
         return TaskResult(self.task_name, ' '.join(command), stdout, stderr, step_index, self.seed)

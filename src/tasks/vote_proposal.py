@@ -19,11 +19,11 @@ class VoteProposal(Task):
 
         current_epoch = self.parser.parse_client_epoch(epoch_stdout)
 
-        proposal = Proposal.get_random_votable_proposal(current_epoch)
+        proposal = Proposal.get_random_votable_proposal(current_epoch, self.seed)
         if proposal is None:
             return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
-        delegation = Delegation.get_random_valid_delegation(current_epoch)
+        delegation = Delegation.get_random_valid_delegation(current_epoch, self.seed)
         if delegation is None:
             return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
