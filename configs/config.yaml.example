@@ -19,4 +19,4 @@ tasks:
 
 settings:
   dry_run: false
-  total_tx: 20
+  total_tx: 2

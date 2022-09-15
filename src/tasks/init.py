@@ -2,6 +2,7 @@ import logging
 import string
 from dataclasses import dataclass
 from random import choice
+from time import sleep
 from typing import Tuple, List, Dict
 
 from src.constants import TOKENS, ACCOUNT_FORMAT

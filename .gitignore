@@ -313,3 +313,4 @@ logs/*
 !logs/.keep
 *.db
 proposal.json
+result_*.json

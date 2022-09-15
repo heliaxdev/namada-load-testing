@@ -11,7 +11,13 @@ A configurable load testing tool for Namada networks.
 
 ## Run
 
-- `./run.sh $namada_folder $binary_folder $config_path [--fail-fast]`
+- `poetry run python3 main.py --seeds [list of seeds space separated] --base-directory [base namada directory] --base-binary [path to namada binary (relative to --base-directory)] --config-path [path to config] (--fail-fast)`]
+
+example:
+
+- `poetry run python3 main.py --seeds 8 9 10 --base-directory /Heliax/namada --base-binary ./target/debug/namada --config-path configs/config.yaml.example` 
+INFO:root:manager:5-0 - Running Init against 0.0.0.0:26657
+
 
 ## Transaction types
 
