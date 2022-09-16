@@ -4,9 +4,13 @@ from dataclasses import dataclass, field
 from multiprocessing.context import Process
 from multiprocessing import Queue
 from pathlib import Path
-from typing import List, Dict
+from time import sleep
+from typing import List
+
+import requests
 
 from src.config import Config
+from src.constants import STATUS_ENDPOINT
 from src.manager import Manager, ManagerResult
 from src.store import connect
 
@@ -15,19 +19,29 @@ from src.store import connect
 class Coordinator:
 
     @staticmethod
-    def run(config: Config, seeds: List[str], base_directory: str, base_binary: str, fail_fast: bool, json_output: bool):
+    def run(config: Config, seeds: List[str], nodes: List[str], base_directory: str, base_binary: str, fail_fast: bool, json_output: bool):
         Path("db.db").unlink(missing_ok=True)
         connect()
 
         q = Queue()
         managers = [Manager('manager:{}'.format(seed), config, int(seed)) for seed in set(seeds)]
-        processes = [Process(target=Coordinator._run_manager, args=(manager, base_directory, fail_fast, q))
+        processes = [Process(target=Coordinator._run_manager, args=(manager, base_directory, nodes, fail_fast, q))
                      for manager in managers]
 
-        for manager in managers:
-            manager.run_init_task(base_directory, base_binary)
+        # waiting for node to be synched
+        waiting_sync_node = [True for _ in nodes]
+        while any(waiting_sync_node):
+            for index, node in enumerate(nodes):
+                node_status = requests.get("http://{}/{}".format(node, STATUS_ENDPOINT), timeout=5)
+                is_synched = node_status.json()['sync_info']['catching_up']
+                logging.info("Node {} is caught up: {}".format(node, not is_synched))
+                waiting_sync_node[index] = is_synched
+            sleep(3)
 
-        logging.info("coordinator - Starting load testing with {}".format(', '.join(seeds)))
+        for manager in managers:
+            manager.run_init_task(base_directory, base_binary, nodes)
+
+        logging.info("coordinator - Starting load testing with {}...".format(', '.join(seeds)))
 
         for p in processes:
             p.start()
@@ -40,8 +54,8 @@ class Coordinator:
         Coordinator._dump_stats(q, json_output)
 
     @staticmethod
-    def _run_manager(manager: Manager, base_directory: str, fail_fast: bool, queue: Queue):
-        result = manager.run(base_directory, fail_fast)
+    def _run_manager(manager: Manager, base_directory: str, nodes: List[str], fail_fast: bool, queue: Queue):
+        result = manager.run(base_directory, nodes, fail_fast)
         queue.put(result)
 
     @staticmethod

@@ -19,7 +19,7 @@ class Transfer(Task):
         command = self.client.transfer(from_account.alias, to_account.alias, token, amount, ledger_address)
         is_successful, stdout, stderr = self.execute_command(command)
         if not is_successful:
-            return TaskResult(self.task_name, "", "", "", step_index, self.seed)
+            return TaskResult(self.task_name, command, stdout, stderr, step_index, self.seed)
 
         changed_rows = Account.update_account_balance(from_account.alias, token, -amount, self.seed)
         self.assert_row_affected(1, changed_rows)
