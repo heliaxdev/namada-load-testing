@@ -67,7 +67,7 @@ class InitProposal(Task):
         is_successful, stdout, stderr = self.execute_command(command)
 
         if not is_successful:
-            return TaskResult(self.task_name, "", "", "", step_index, self.seed)
+            return TaskResult(self.task_name, command, stdout, stderr, step_index, self.seed)
 
         proposal_id = Proposal.get_last_proposal_id(self.seed)
         proposal_id = 0 if not proposal_id and proposal_id != 0 else proposal_id + 1

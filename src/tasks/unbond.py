@@ -30,7 +30,7 @@ class Unbond(Task):
         is_successful, stdout, stderr = self.execute_command(command)
 
         if not is_successful:
-            return TaskResult(self.task_name, "", "", "", step_index, self.seed)
+            return TaskResult(self.task_name, command, stdout, stderr, step_index, self.seed)
 
         # workaround cause I can't understand how to get the correct withdrawal epoch
         bond_command = self.client.get_delegations(ledger_address)

@@ -5,7 +5,6 @@ from shutil import rmtree
 from typing import List, Tuple, Dict, Union
 
 from src.config import Config
-from src.constants import LOCAL_LEDGER_ADDRESS
 from src.task import Task
 from src.tasks.delegate import Delegate
 from src.tasks.faucet import Faucet
@@ -23,7 +22,8 @@ class ManagerResult:
     stats: Dict[str, Dict[str, int]]
 
     def print(self) -> None:
-        print("Manager result {}".format(self.seed))
+        total_tx = sum([self.stats[key]['succeeded'] + self.stats[key]['failed'] for key in self.stats.keys()])
+        print("Manager {} result ({} txs)".format(self.seed, total_tx))
         for task_name in self.stats.keys():
             succeeded = self.stats[task_name]['succeeded']
             failed = self.stats[task_name]['failed']
@@ -57,15 +57,15 @@ class Manager:
 
         rmtree("logs/{}".format(self.seed), ignore_errors=True)
 
-    # workaround cause of namda wallet bug with file_lock
-    def run_init_task(self, base_directory: str, base_binary: str):
+    # workaround cause of namada wallet bug with file_lock
+    def run_init_task(self, base_directory: str, base_binary: str, nodes: List[str]):
+        ledger_address = self._get_random_node_address(nodes)
         self.all_tasks = self._build_all_tasks(base_directory, base_binary, self.seed)
-        logging.info("{0}-{1} - Running {2} against {3}".format(self.name, 0, 'Init', LOCAL_LEDGER_ADDRESS))
-        self.all_tasks['Init'].run(0, base_directory, LOCAL_LEDGER_ADDRESS, False)
+        logging.info("{0}-{1} - Running {2} against {3}...".format(self.name, 0, 'Init', ledger_address))
+        self.all_tasks['Init'].run(0, base_directory, ledger_address, False)
         logging.info("{0}-{1} - Done {2} task".format(self.name, 0, 'Init'))
 
-    def run(self, base_directory: str, fail_fast: bool) -> ManagerResult:
-        nodes = self.config.get_nodes()
+    def run(self, base_directory: str, nodes: List[str], fail_fast: bool) -> ManagerResult:
         tasks = self.config.get_tasks()
 
         task_types, task_probabilities = self._build_task_with_probabilities(tasks)
@@ -76,18 +76,19 @@ class Manager:
             node_address = self._get_random_node_address(nodes)
             next_task = self._get_next_task(task_types, task_probabilities)
             logging.info(
-                "{0}-{1} - Running {2} against {3}".format(self.name, index, next_task.task_name, node_address))
+                "{0}-{1} - Running {2} against {3}...".format(self.name, index, next_task.task_name, node_address))
             task_result = next_task.run(index, base_directory, node_address, dry_run)
             task_result.dump()
 
             if task_result.is_error() and fail_fast:
                 logging.info("{0}-{1} - Failed {2} ({3}s)".format(self.name, index, task_result.task_name,
                                                                   task_result.time_elapsed))
+                logging.info("{0}-{1} - Shutting down manager...".format(self.name, index))
                 self.stats[task_result.task_name]['failed'] += 1
                 return ManagerResult(self.seed, self.stats)
             elif task_result.is_error():
                 logging.info(
-                    "{0}-{1} - Successfully completed {2} ({3}s)".format(self.name, index, task_result.task_name,
+                    "{0}-{1} - Failed {2} ({3}s)".format(self.name, index, task_result.task_name,
                                                                          task_result.time_elapsed))
                 self.stats[task_result.task_name]['failed'] += 1
             else:

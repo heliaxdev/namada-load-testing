@@ -35,7 +35,7 @@ class TaskResult:
         }
 
     def set_time_elapsed(self, start_time: float):
-        self.time_elapsed = time.time() - start_time
+        self.time_elapsed = round(time.time() - start_time, 2)
         return self
 
     def dump(self):
@@ -70,7 +70,7 @@ class Task(ABC):
     def handler(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:
         raise Exception("Handler must be implemented!")
 
-    def execute_command(self, command: List[str], timeout: int = 30) -> Tuple[bool, str, str]:
+    def execute_command(self, command: List[str], timeout: int = 130) -> Tuple[bool, str, str]:
         process_result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
                                         cwd=self.base_diretory, timeout=timeout)
         if not self._is_tx_valid(process_result):
