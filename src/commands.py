@@ -15,6 +15,10 @@ class Command:
         else:
             return "{0} {1} {2}".format(self.base_binary, sub_binary, command).split(' ')
 
+    @staticmethod
+    def _remove_prefix(text, prefix):
+        return text[text.startswith(prefix) and len(prefix):]
+
 
 @dataclass
 class WalletCommands(Command):
@@ -56,13 +60,13 @@ class ClientCommands(Command):
                                           ACCOUNT_FORMAT, alias), ledger_address)
 
     def faucet(self, account_alias: str, token: str, amount: int, ledger_address: str):
-        signer = account_alias.removeprefix("{}-".format(ACCOUNT_FORMAT))
+        signer = self._remove_prefix(account_alias, "{}-".format(ACCOUNT_FORMAT))
         return self._get_full_command(self.sub_binary,
                                       "transfer --source faucet --target {0} --signer {1} --token {2} --amount {3}".format(
                                           account_alias, signer, token, amount), ledger_address)
 
     def transfer(self, from_alias: str, to_alias: str, token: str, amount: int, ledger_address: str):
-        signer = from_alias.removeprefix("{}-".format(ACCOUNT_FORMAT))
+        signer = self._remove_prefix(from_alias, "{}-".format(ACCOUNT_FORMAT))
         return self._get_full_command(self.sub_binary,
                                       "transfer --source {0} --target {1} --signer {2} --token {3} --amount {4}".format(
                                           from_alias, to_alias, signer, token, amount), ledger_address)
