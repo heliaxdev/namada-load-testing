@@ -10,7 +10,7 @@ class Delegate(Task):
     ACTIVE_EPOCH_WAIT: int = 2
 
     def handler(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:
-        delegator = Account.get_random_account_with_balance_grater_than(self.BOND_AMOUNT * 2, self.seed)
+        delegator = Account.get_random_account_with_balance_grater_than(self.BOND_AMOUNT * 2, self.seed, tokens=['XAN'])
         if not delegator:
             return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
