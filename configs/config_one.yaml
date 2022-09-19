@@ -12,4 +12,4 @@ tasks:
 
 settings:
   dry_run: false
-  total_tx: 1000
+  total_tx: 10
