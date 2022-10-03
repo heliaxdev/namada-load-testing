@@ -27,11 +27,15 @@ class Parser:
     @staticmethod
     def parse_client_balance_owner(output: str) -> Dict[str, int]:
         balance_map = {}
+
+        token = None
         for line in output.splitlines()[1:]:
-            if 'No balance found' in line:
+            if 'No balances owned' in line:
                 continue
-            tmp = line.split(':')
-            token = tmp[0].strip()
+            if 'Token' in line:
+                token = line.split(' ')[1]
+                continue
+            tmp = line.split(':')[1].split(',')[0]
             amount = int(tmp[1].strip())
             balance_map[token] = amount
         return balance_map
