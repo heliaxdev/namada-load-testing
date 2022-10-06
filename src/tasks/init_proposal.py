@@ -43,8 +43,8 @@ class InitProposal(Task):
 
         current_epoch = self.parser.parse_client_epoch(epoch_stdout)
 
-        proposer_account = Account.get_random_account_with_balance_grater_than(self.PROPOSAL_MIN_FUNDS, self.seed,
-                                                                               ['XAN'])
+        proposer_account = Account.get_random_account_with_balance_greater_than(self.PROPOSAL_MIN_FUNDS, self.seed,
+                                                                                ['XAN'])
         if proposer_account is None:
             return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 

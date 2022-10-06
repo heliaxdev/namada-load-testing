@@ -12,8 +12,9 @@ class Transfer(Task):
         if not from_account:
             return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
-        to_account = Account.get_random_account(self.seed)
         token = from_account.token
+
+        to_account = Account.get_random_account(self.seed, tokens=[token])
         amount = random.randint(0, from_account.amount)
 
         command = self.client.transfer(from_account.alias, to_account.alias, token, amount, ledger_address)

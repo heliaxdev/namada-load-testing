@@ -24,15 +24,15 @@ class Account(BaseModel):
         return cls.create(alias=alias, address=address, token=token, amount=amount, seed=seed)
 
     @classmethod
-    def get_random_account(cls, seed: int):
-        return cls.select().where(cls.seed == seed).order_by(fn.Random()).get()
+    def get_random_account(cls, seed: int, tokens: List[str] = TOKENS):
+        return cls.select().where(cls.seed == seed, cls.token << tokens).order_by(fn.Random()).get()
 
     @classmethod
     def get_random_account_with_positive_balance(cls, seed: int, tokens: List[str] = TOKENS):
-        return cls.get_random_account_with_balance_grater_than(0, seed, tokens)
+        return cls.get_random_account_with_balance_greater_than(0, seed, tokens)
 
     @classmethod
-    def get_random_account_with_balance_grater_than(cls, amount: int, seed: int, tokens: List[str] = TOKENS):
+    def get_random_account_with_balance_greater_than(cls, amount: int, seed: int, tokens: List[str] = TOKENS):
         return cls.select().where(cls.amount > amount, cls.token << tokens, cls.seed == seed).order_by(
             fn.Random()).get_or_none()
 
