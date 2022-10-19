@@ -33,7 +33,11 @@ class Coordinator:
         while any(waiting_sync_node):
             for index, node in enumerate(nodes):
                 node_status = requests.get("http://{}/{}".format(node, STATUS_ENDPOINT), timeout=5)
-                is_synched = node_status.json()['sync_info']['catching_up']
+                body = node_status.json()
+                if 'result' in body:
+                    is_synched = node_status.json()['result']['sync_info']['catching_up']
+                else:
+                    is_synched = node_status.json()['sync_info']['catching_up']
                 logging.info("Node {} is caught up: {}".format(node, not is_synched))
                 waiting_sync_node[index] = is_synched
             sleep(3)
