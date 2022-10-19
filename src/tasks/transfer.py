@@ -15,6 +15,8 @@ class Transfer(Task):
         token = from_account.token
 
         to_account = Account.get_random_account(self.seed, tokens=[token])
+        while to_account.alias == from_account.alias:
+            to_account = Account.get_random_account(self.seed, tokens=[token])
         amount = random.randint(0, from_account.amount)
 
         command = self.client.transfer(from_account.alias, to_account.alias, token, amount, ledger_address)

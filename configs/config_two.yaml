@@ -1,14 +1,14 @@
 tasks:
   - type: Faucet
-    probability: 8
+    probability: 5
   - type: Transfer
     probability: 5
-  - type: Delegate
-    probability: 3
-  - type: Unbond
-    probability: 2
-  - type: Withdraw
-    probability: 2
+   - type: Delegate
+     probability: 3
+   - type: Unbond
+     probability: 2
+   - type: Withdraw
+     probability: 2
 
 settings:
   dry_run: false
