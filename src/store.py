@@ -42,7 +42,7 @@ class Account(BaseModel):
 
     @classmethod
     def update_account_balance(cls, alias: str, token: str, delta_amount: int, seed: int):
-        user = cls.get(cls.alias == alias)
+        user = cls.get(cls.alias == alias, cls.token == token, cls.seed == seed)
         old_amount = user.amount
         return cls.update({cls.amount: old_amount + delta_amount}).where(cls.alias == user.alias, cls.token == token,
                                                                          cls.seed == seed).execute()
