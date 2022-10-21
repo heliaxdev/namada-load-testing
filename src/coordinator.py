@@ -1,9 +1,9 @@
 import json
 import logging
 from dataclasses import dataclass, field
-from multiprocessing.context import Process
 from multiprocessing import Queue
 from pathlib import Path
+from threading import Thread
 from time import sleep
 from typing import List
 
@@ -25,7 +25,7 @@ class Coordinator:
 
         q = Queue()
         managers = [Manager('manager:{}'.format(seed), config, int(seed)) for seed in set(seeds)]
-        processes = [Process(target=Coordinator._run_manager, args=(manager, base_directory, nodes, fail_fast, q))
+        threads = [Thread(target=Coordinator._run_manager, args=(manager, base_directory, nodes, fail_fast, q))
                      for manager in managers]
 
         # waiting for node to be synched
@@ -47,10 +47,10 @@ class Coordinator:
 
         logging.info("coordinator - Starting load testing with {}...".format(', '.join(seeds)))
 
-        for p in processes:
+        for p in threads:
             p.start()
 
-        for p in processes:
+        for p in threads:
             p.join()
 
         logging.info("coordinator - Done load testing!")
