@@ -8,7 +8,8 @@ from typing import Tuple, List
 
 from src.commands import WalletCommands, ClientCommands
 from src.constants import VALID_TRANSACTION_OUTPUT, INVALID_TRANSACTION_OUTPUT, INVALID_TRANSACTION_EXECUTION_OUTPUT
-from src.parser_1 import Parser
+from src.output_parser import Parser
+import logging
 
 
 @dataclass
@@ -96,7 +97,7 @@ class Task(ABC):
             elif "Skipping a value for key" in process_result.stderr:
                 pass
             else:
-                print('failed because stderr is present that isnt not enough gas')
+                logging.debug('failed because stderr is present that isnt not enough gas')
                 return False
 
         if not any(output in process_result.stdout for output in [VALID_TRANSACTION_OUTPUT, INVALID_TRANSACTION_OUTPUT,
@@ -108,10 +109,10 @@ class Task(ABC):
         if VALID_TRANSACTION_OUTPUT in process_result.stdout:
             return True
         elif INVALID_TRANSACTION_OUTPUT in process_result.stdout or INVALID_TRANSACTION_OUTPUT in process_result.stderr:
-            print('failed bacuase of 96')
+            logging.debug('failed bacuase of 96')
             return False
         elif INVALID_TRANSACTION_EXECUTION_OUTPUT in process_result.stdout or INVALID_TRANSACTION_EXECUTION_OUTPUT in process_result.stderr:
-            print('failed because of 98')
+            logging.debug('failed because of 98')
             return False
         else:
             return True
