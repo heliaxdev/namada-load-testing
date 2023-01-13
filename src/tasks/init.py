@@ -8,6 +8,7 @@ from typing import Tuple, List, Dict
 from src.constants import TOKENS, ACCOUNT_FORMAT
 from src.store import Account, Validator, Delegation, Withdrawal, Proposal
 from src.task import Task, TaskResult
+import logging
 
 
 @dataclass
@@ -50,6 +51,8 @@ class Init(Task):
         is_successful, stdout, stderr = self.execute_command(command)
 
         if not is_successful:
+            logging.debug(stdout)
+            logging.debug(stderr)
             raise Exception("Can't list validators.")
 
         return self.parser.parse_client_validators(stdout)
@@ -61,6 +64,7 @@ class Init(Task):
             is_successful, stdout, stderr = self.execute_command(command)
 
             if not is_successful:
+                logging.debug(stderr)
                 raise Exception("Can't get balance of {}.".format(alias))
 
             owner_balances = self.parser.parse_client_balance_owner(stdout)
@@ -98,6 +102,9 @@ class Init(Task):
         is_successful, stdout, stderr = self.execute_command(command)
 
         if not is_successful:
+            logging.debug(stdout)
+            logging.debug('stderr is:')
+            logging.debug(stderr)
             raise Exception("Can't init account with alias {}.".format(alias))
 
         account_alias, account_address = self.parser.parse_client_init_account(stdout)

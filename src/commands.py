@@ -39,7 +39,7 @@ class ClientCommands(Command):
         return self._get_full_command(self.sub_binary, "epoch", ledger_address)
 
     def get_current_validators(self, ledger_address: str):
-        return self._get_full_command(self.sub_binary, "voting-power", ledger_address)
+        return self._get_full_command(self.sub_binary, "bonded-stake", ledger_address)
 
     def get_account_balance(self, owner: str, ledger_address: str):
         return self._get_full_command(self.sub_binary, "balance --owner {0}".format(owner), ledger_address)
