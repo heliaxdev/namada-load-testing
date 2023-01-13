@@ -41,4 +41,4 @@ A process will be spawned for each seed in the list, sending transactions concur
 
 ## Logs
 
-A folder per seed is created in the `logs` folder. Inside that folder, a dump of the all command results are saved.
+A folder per seed is created in the `logs` folder. Inside that folder, a dump of all the command results are saved.
