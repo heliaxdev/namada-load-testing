@@ -7,7 +7,10 @@ from dataclasses import dataclass, field
 from typing import Tuple, List
 
 from src.commands import WalletCommands, ClientCommands
-from src.constants import VALID_TRANSACTION_OUTPUT, INVALID_TRANSACTION_OUTPUT, INVALID_TRANSACTION_EXECUTION_OUTPUT
+from src.constants import (
+    VALID_TRANSACTION_OUTPUT, INVALID_TRANSACTION_OUTPUT, 
+    INVALID_TRANSACTION_EXECUTION_OUTPUT, NOT_ENOUGH_BALANCE, SKIPPING_KEY
+)
 from src.output_parser import Parser
 import logging
 
@@ -25,10 +28,10 @@ class TaskResult:
     def is_error(self):
         if len(self.stderr) > 0:
             #Shows up as an error but isnt a failed tx
-            if "doesn't have enough balance to pay" in self.stderr:
+            if NOT_ENOUGH_BALANCE in self.stderr:
                 return False
             #Temporary bug
-            elif "Skipping a value for key" in self.stderr:
+            elif SKIPPING_KEY in self.stderr:
                 return False
             else:
                 return True
@@ -91,10 +94,10 @@ class Task(ABC):
     @staticmethod
     def _is_tx_valid(process_result: subprocess.CompletedProcess) -> bool:
         if len(process_result.stderr) > 0:
-            if "doesn't have enough balance" in process_result.stderr:
+            if NOT_ENOUGH_BALANCE in process_result.stderr:
                 pass
             #Temporary bug
-            elif "Skipping a value for key" in process_result.stderr:
+            elif SKIPPING_KEY in process_result.stderr:
                 pass
             else:
                 logging.debug('failed because stderr is present that isnt not enough gas')
