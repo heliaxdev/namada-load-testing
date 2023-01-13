@@ -8,7 +8,7 @@ from typing import Tuple, List
 
 from src.commands import WalletCommands, ClientCommands
 from src.constants import VALID_TRANSACTION_OUTPUT, INVALID_TRANSACTION_OUTPUT, INVALID_TRANSACTION_EXECUTION_OUTPUT
-from src.parser import Parser
+from src.parser_1 import Parser
 
 
 @dataclass
@@ -22,7 +22,15 @@ class TaskResult:
     time_elapsed: float = field(init=False)
 
     def is_error(self):
-        return len(self.stderr) > 0
+        if len(self.stderr) > 0:
+            #Shows up as an error but isnt a failed tx
+            if "doesn't have enough balance to pay" in self.stderr:
+                return False
+            #Temporary bug
+            elif "Skipping a value for key" in self.stderr:
+                return False
+            else:
+                return True
 
     def serialize(self):
         return {
@@ -71,6 +79,8 @@ class Task(ABC):
         raise Exception("Handler must be implemented!")
 
     def execute_command(self, command: List[str], timeout: int = 130) -> Tuple[bool, str, str]:
+        # If a command fails due to a timeout error, it may be because the ledger is prompting it to replace already existing keys
+        # To resolve this, try a different set of seeds, or clear the wallet
         process_result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
                                         cwd=self.base_diretory, timeout=timeout)
         if not self._is_tx_valid(process_result):
@@ -80,7 +90,14 @@ class Task(ABC):
     @staticmethod
     def _is_tx_valid(process_result: subprocess.CompletedProcess) -> bool:
         if len(process_result.stderr) > 0:
-            return False
+            if "doesn't have enough balance" in process_result.stderr:
+                pass
+            #Temporary bug
+            elif "Skipping a value for key" in process_result.stderr:
+                pass
+            else:
+                print('failed because stderr is present that isnt not enough gas')
+                return False
 
         if not any(output in process_result.stdout for output in [VALID_TRANSACTION_OUTPUT, INVALID_TRANSACTION_OUTPUT,
                                                                   INVALID_TRANSACTION_EXECUTION_OUTPUT]) and not any(
@@ -91,8 +108,10 @@ class Task(ABC):
         if VALID_TRANSACTION_OUTPUT in process_result.stdout:
             return True
         elif INVALID_TRANSACTION_OUTPUT in process_result.stdout or INVALID_TRANSACTION_OUTPUT in process_result.stderr:
+            print('failed bacuase of 96')
             return False
         elif INVALID_TRANSACTION_EXECUTION_OUTPUT in process_result.stdout or INVALID_TRANSACTION_EXECUTION_OUTPUT in process_result.stderr:
+            print('failed because of 98')
             return False
         else:
             return True

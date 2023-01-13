@@ -29,15 +29,17 @@ class Parser:
         balance_map = {}
 
         token = None
+        # First line is CHAIN_ID ...
         for line in output.splitlines()[1:]:
             if 'No balances owned' in line:
                 continue
             if 'Token' in line:
                 token = line.split(' ')[1]
                 continue
-            tmp = line.split(':')[1].split(',')[0]
-            amount = int(tmp[1].strip())
-            balance_map[token] = amount
+            elif ':' in line and 'owned by' in line:
+                tmp = line.split(':')[1].split(',')[0]
+                amount = int(tmp[1].strip())
+                balance_map[token] = amount
         return balance_map
 
     @staticmethod

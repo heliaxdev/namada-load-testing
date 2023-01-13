@@ -50,6 +50,8 @@ class Init(Task):
         is_successful, stdout, stderr = self.execute_command(command)
 
         if not is_successful:
+            print(stdout)
+            print(stderr)
             raise Exception("Can't list validators.")
 
         return self.parser.parse_client_validators(stdout)
@@ -61,6 +63,7 @@ class Init(Task):
             is_successful, stdout, stderr = self.execute_command(command)
 
             if not is_successful:
+                print(stderr)
                 raise Exception("Can't get balance of {}.".format(alias))
 
             owner_balances = self.parser.parse_client_balance_owner(stdout)
@@ -98,6 +101,9 @@ class Init(Task):
         is_successful, stdout, stderr = self.execute_command(command)
 
         if not is_successful:
+            print(stdout)
+            print('stderr is:')
+            print(stderr)
             raise Exception("Can't init account with alias {}.".format(alias))
 
         account_alias, account_address = self.parser.parse_client_init_account(stdout)
