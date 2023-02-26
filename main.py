@@ -25,8 +25,10 @@ if __name__ == '__main__':
     parser.add_argument("-c", "--config-path", type=str, action='store', help='Path to config file.',
                         default="configs/conf.yaml")
     parser.add_argument("-ff", "--fail-fast", action='store_true', help='Fail if any tx fail.', default=False)
-    parser.add_argument("-j", "--json_output", action='store_true', help='Dump result as json', default=False)
+    parser.add_argument("-j", "--json-output", action='store_true', help='Dump result as json', default=False)
 
     args = parser.parse_args()
+
+    print(args)
 
     run(args)

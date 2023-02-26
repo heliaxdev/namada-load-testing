@@ -44,7 +44,7 @@ class InitProposal(Task):
         current_epoch = self.parser.parse_client_epoch(epoch_stdout)
 
         proposer_account = Account.get_random_account_with_balance_greater_than(self.PROPOSAL_MIN_FUNDS, self.seed,
-                                                                                ['XAN'])
+                                                                                ['NAM'])
         if proposer_account is None:
             return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
@@ -74,7 +74,7 @@ class InitProposal(Task):
 
         Proposal.create_proposal(proposal_id, proposer_account.get_id(), voting_start_epoch, voting_end_epoch,
                                  self.seed)
-        affected_rows = Account.update_account_balance(proposer_account.alias, 'XAN', -self.PROPOSAL_MIN_FUNDS,
+        affected_rows = Account.update_account_balance(proposer_account.alias, 'NAM', -self.PROPOSAL_MIN_FUNDS,
                                                        self.seed)
         self.assert_row_affected(affected_rows, 1)
 
