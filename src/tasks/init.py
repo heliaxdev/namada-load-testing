@@ -119,6 +119,7 @@ class Init(Task):
         if not is_successful:
             raise Exception("Can't read bonds.")
 
+        print(stdout)
         delegations = self.parser.parse_client_delegations(stdout)
 
         filtered_delegations = []
