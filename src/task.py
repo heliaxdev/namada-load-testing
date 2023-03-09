@@ -35,6 +35,9 @@ class TaskResult:
                 return False
             else:
                 return True
+            
+    def is_skipped(self):
+        return len(self.stderr) == 0 and len(self.stdout) == 0 and len(self.command) == 0  
 
     def serialize(self):
         return {

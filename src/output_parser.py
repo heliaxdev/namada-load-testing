@@ -7,13 +7,18 @@ class Parser:
 
     @staticmethod
     def parse_wallet_address_list(output: str) -> Tuple[List[str], List[str]]:
+        start_parsing = False
+
         aliases, addresses = [], []
-        for line in output.splitlines()[1:]:
-            tmp = line.split(':')
-            alias = tmp[0][3:-1].strip()
-            address = tmp[2].strip()
-            aliases.append(alias)
-            addresses.append(address)
+        for line in output.splitlines():
+            if start_parsing:
+                tmp = line.split(':')
+                alias = tmp[0][3:-1].strip()
+                address = tmp[2].strip()
+                aliases.append(alias)
+                addresses.append(address)
+            if "Known addresses" in line:
+                start_parsing = True
         return aliases, addresses
 
     @staticmethod

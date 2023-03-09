@@ -22,18 +22,21 @@ class ManagerResult:
     stats: Dict[str, Dict[str, int]]
 
     def print(self) -> None:
-        total_tx = sum([self.stats[key]['succeeded'] + self.stats[key]['failed'] for key in self.stats.keys()])
-        print("Manager {} result ({} txs)".format(self.seed, total_tx))
+        total_tx = sum([self.stats[key]['succeeded'] + self.stats[key]['failed'] + self.stats[key]['skipped'] for key in self.stats.keys()])
+        print("Manager {} result ({} txs):".format(self.seed, total_tx))
         for task_name in self.stats.keys():
             succeeded = self.stats[task_name]['succeeded']
             failed = self.stats[task_name]['failed']
+            skipped = self.stats[task_name]['skipped']
             percentage = 100 if succeeded == 0 and failed == 0 else int((succeeded / (succeeded + failed)) * 100)
             print("- {0} - {1} / {2} ({3}%)".format(task_name, succeeded, failed, percentage))
+            print("- {0} - {1} txs skipped.".format(task_name, skipped))
 
     def to_json(self) -> Dict[str, Union[int, Dict]]:
         succeeded_tx = sum([self.stats[key]['succeeded'] for key in self.stats.keys()])
         failed_tx = sum([self.stats[key]['failed'] for key in self.stats.keys()])
-        total_tx = succeeded_tx + failed_tx
+        skipped_tx = sum([self.stats[key]['skipped'] for key in self.stats.keys()])
+        total_tx = succeeded_tx + failed_tx + skipped_tx
         succeeded_percentage = 100 if total_tx == 0 else int((succeeded_tx / total_tx) * 100)
 
         return {'seed': self.seed, 'stats': self.stats, 'total_tx': total_tx, 'successful_percentage': succeeded_percentage}
@@ -50,7 +53,7 @@ class Manager:
 
     def __post_init__(self):
         tasks = self.config.get_tasks()
-        self.stats = {task_name: {'succeeded': 0, 'failed': 0} for task_name in [task['type'] for task in tasks]}
+        self.stats = {task_name: {'succeeded': 0, 'failed': 0, 'skipped': 0} for task_name in [task['type'] for task in tasks]}
 
         self.r = random.Random(self.seed)
         random.seed(self.seed)
@@ -80,7 +83,11 @@ class Manager:
             task_result = next_task.run(index, base_directory, node_address, dry_run)
             task_result.dump()
 
-            if task_result.is_error() and fail_fast:
+            if task_result.is_skipped():
+                logging.info("{0}-{1} - Skipped {2} ({3}s)".format(self.name, index, task_result.task_name,
+                                                                  task_result.time_elapsed))
+                self.stats[task_result.task_name]['skipped'] += 1
+            elif task_result.is_error() and fail_fast:
                 logging.info("{0}-{1} - Failed {2} ({3}s)".format(self.name, index, task_result.task_name,
                                                                   task_result.time_elapsed))
                 logging.info("{0}-{1} - Shutting down manager...".format(self.name, index))

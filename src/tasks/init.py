@@ -13,24 +13,38 @@ import logging
 
 @dataclass
 class Init(Task):
-    MIN_ACCOUNT_PER_RUN = 10
+    MIN_ACCOUNT_PER_RUN = 7
 
     def handler(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:
+        logging.info("Parsing aliases and addresses...")
         aliases, addresses = self._get_all_alias_and_addresses()
+        logging.info("Parsed {} aliases and {} addresses!".format(len(aliases), len(addresses)))
+        logging.info("Parsing validators...")
         validator_addresses = self._get_all_validators(ledger_address)
+        logging.info("Parsed {} validators!".format(len(validator_addresses)))
+        logging.info("Parsing delegations...")
         delegations = self._get_delegations(addresses, validator_addresses, ledger_address)
+        logging.info("Parsed {} delegations!".format(len(delegations)))
+        logging.info("Parsing withdrawals...")
         withdrawals = self._get_withdrawals(addresses, validator_addresses, ledger_address)
+        logging.info("Parsed {} withdrawals!".format(len(withdrawals)))
+        logging.info("Parsing proposals...")
         proposals = self._get_all_proposals(ledger_address)
+        logging.info("Parsed {} proposals!".format(len(proposals)))
 
+        logging.info("Setup accounts...")
         self._setup_accounts(aliases, addresses, ledger_address)
+        logging.info("Setup balances...")
         alias_balances = self._get_all_balances(aliases, ledger_address)
+        logging.info("Init storage...")
         self._init_storage(aliases, addresses, validator_addresses, alias_balances, delegations, withdrawals, proposals)
+        logging.info("Done!")
 
         return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
     def _get_all_alias_and_addresses(self) -> Tuple[List[str], List[str]]:
         command = self.wallet.address_list()
-        is_successful, stdout, stderr = self.execute_command(command)
+        is_successful, stdout, _stderr = self.execute_command(command)
 
         if not is_successful:
             raise Exception("Can't list wallet addresses.")

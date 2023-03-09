@@ -12,12 +12,12 @@ class Delegate(Task):
     ACTIVE_EPOCH_WAIT: int = 2
 
     def handler(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:
-        delegator = Account.get_random_account_with_balance_greater_than(self.BOND_AMOUNT_MIN * 2, self.seed, tokens=['NAM'])
+        amount = random.randint(self.BOND_AMOUNT_MIN, self.BOND_AMOUNT_MAX)
+        delegator = Account.get_random_account_with_balance_greater_than(amount, self.seed, tokens=['NAM'])
         if not delegator:
             return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
         validator = Validator.get_random_validator(self.seed)
-        amount = random.randint(self.BOND_AMOUNT_MIN, self.BOND_AMOUNT_MAX)
 
         command = self.client.bond(delegator.alias, validator.address, amount, ledger_address)
         is_successful, stdout, stderr = self.execute_command(command)
