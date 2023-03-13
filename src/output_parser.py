@@ -70,11 +70,12 @@ class Parser:
                 tmp = line.split(' ')
                 delegator_address = Parser._remove_symbols(tmp[2])
                 validator_address = Parser._remove_symbols(tmp[4])
-            elif line.strip().startswith('Active') and (
+             
+            elif line.strip().startswith('Remaining active') and (
                     delegator_address is not None and validator_address is not None):
-                tmp = line.strip().split()
-                epoch = Parser._remove_symbols(tmp[3])
-                amount = Parser._remove_symbols(tmp[4])
+                tmp = line.strip().split(' ')
+                epoch = Parser._remove_symbols(tmp[5])
+                amount = Parser._remove_symbols(tmp[7])
                 bonds.append((delegator_address, validator_address, int(epoch), int(amount)))
             elif line.strip().startswith('Self-bonds'):
                 delegator_address = None

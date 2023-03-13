@@ -1,19 +1,19 @@
 tasks:
   - type: Faucet
-    probability: 10
+    probability: 33
   - type: Transfer
-    probability: 5
+    probability: 0
   - type: Delegate
-    probability: 8
+    probability: 33
   - type: Unbond
-    probability: 3
+    probability: 33
   - type: Withdraw
-    probability: 3
+    probability: 0
   - type: InitProposal
-    probability: 8
+    probability: 0
   - type: VoteProposal
-    probability: 4
+    probability: 0
 
 settings:
   dry_run: false
-  total_tx: 30
+  total_tx: 10

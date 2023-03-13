@@ -15,6 +15,8 @@ class Delegate(Task):
         amount = random.randint(self.BOND_AMOUNT_MIN, self.BOND_AMOUNT_MAX)
         delegator = Account.get_random_account_with_balance_greater_than(amount, self.seed, tokens=['NAM'])
         if not delegator:
+            print('doing this because')
+            
             return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
         validator = Validator.get_random_validator(self.seed)
