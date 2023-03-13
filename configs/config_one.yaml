@@ -1,9 +1,9 @@
 tasks:
   - type: Faucet
     probability: 8
-  - type: Delegate
+  - type: InitProposal
     probability: 4
 
 settings:
   dry_run: false
-  total_tx: 15
+  total_tx: 10

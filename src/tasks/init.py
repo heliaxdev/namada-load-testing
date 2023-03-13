@@ -13,7 +13,7 @@ import logging
 
 @dataclass
 class Init(Task):
-    MIN_ACCOUNT_PER_RUN = 7
+    MIN_ACCOUNT_PER_RUN = 5
 
     def handler(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:
         logging.info("Parsing aliases and addresses...")
@@ -87,7 +87,7 @@ class Init(Task):
 
     def _get_all_proposals(self, ledger_address: str) -> List[Tuple[int, str, int, int, str]]:
         command = self.client.get_proposal(None, ledger_address)
-        is_successful, stdout, stderr = self.execute_command(command)
+        is_successful, stdout, _stderr = self.execute_command(command)
 
         if not is_successful:
             raise Exception("Can't get proposals")
@@ -100,6 +100,7 @@ class Init(Task):
             alias, address = self._create_account(ledger_address)
             aliases.append(alias)
             addresses.append(address)
+            logging.info("Created new account {} with alias {}...".format(address, alias))
             i += 1
 
     def _create_account(self, ledger_address: str) -> Tuple[str, str]:

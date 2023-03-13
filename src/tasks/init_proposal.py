@@ -13,6 +13,7 @@ from src.task import Task, TaskResult
 class InitProposal(Task):
     PROPOSAL_PATH: str = os.path.abspath(os.path.join(os.path.curdir, "proposal.json"))
     END_EPOCH_FACTOR: int = 3
+    MAX_START_END_EPOCH_DIFFERENCE: int = 27
     GRACE_EPOCH_FACTOR: int = 6
     PROPOSAL_MIN_FUNDS: int = 500
     PROPOSAL_DISCUSSION_URL_FORMAT: str = "www.github.com/namada/nip/{}"
@@ -36,7 +37,7 @@ class InitProposal(Task):
 
     def handler(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:
         epoch_command = self.client.get_current_epoch(ledger_address)
-        is_successful, epoch_stdout, epoch_stderr = self.execute_command(epoch_command)
+        is_successful, epoch_stdout, _epoch_stderr = self.execute_command(epoch_command)
 
         if not is_successful:
             raise Exception("Can't query current epoch.")
@@ -49,7 +50,7 @@ class InitProposal(Task):
             return TaskResult(self.task_name, "", "", "", step_index, self.seed)
 
         voting_start_epoch = current_epoch + random.randint(2, 45)
-        voting_end_epoch = voting_start_epoch + random.randint(self.END_EPOCH_FACTOR, 45)
+        voting_end_epoch = voting_start_epoch + random.randint(self.END_EPOCH_FACTOR, self.MAX_START_END_EPOCH_DIFFERENCE)
         grace_epoch = voting_end_epoch + random.randint(self.GRACE_EPOCH_FACTOR, 20)
         discussion_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
 

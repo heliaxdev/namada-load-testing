@@ -39,7 +39,7 @@ class ManagerResult:
         total_tx = succeeded_tx + failed_tx + skipped_tx
         succeeded_percentage = 100 if total_tx == 0 else int((succeeded_tx / total_tx) * 100)
 
-        return {'seed': self.seed, 'stats': self.stats, 'total_tx': total_tx, 'successful_percentage': succeeded_percentage}
+        return {'seed': self.seed, 'stats': self.stats, 'total_tx': total_tx, 'successful_percentage': succeeded_percentage, 'skipped_tx': skipped_tx}
 
 
 @dataclass

@@ -26,4 +26,4 @@ RUN ./namada client utils join-network --chain-id ${chain_id}
 COPY --chown=ubuntu . . 
 
 ENTRYPOINT ["python3", "main.py", "--base-directory", "/home/ubuntu", "--base-binary", "/home/ubuntu/namada"]
-CMD ["--seeds", "4", "--config-path", "/home/ubuntu/configs/config_one.yaml", "-n", "52.208.35.120:26657", "54.170.16.39:26657", "54.229.200.5:26657"]
+CMD ["--seeds", "10", "5", "6", "7", "8", "--config-path", "/home/ubuntu/configs/config_one.yaml", "-n", "0.0.0.0:26657"]

@@ -12,7 +12,7 @@ class Faucet(Task):
 
     def handler(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:
         account = Account.get_random_account(self.seed)
-        amount = random.randint(0, self.FAUCET_AMOUNT_LIMIT)
+        amount = random.randint(self.FAUCET_AMOUNT_LIMIT * 0.9, self.FAUCET_AMOUNT_LIMIT)
         token = account.token
 
         command = self.client.faucet(account.alias, token, amount, ledger_address)
