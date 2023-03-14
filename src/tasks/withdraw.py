@@ -38,18 +38,8 @@ class Withdraw(Task):
         if not is_successful:
             return TaskResult(self.task_name, command, stdout, stderr, step_index, self.seed)
 
-        # workaround cause I can't understand how to get the correct withdrawal epoch
-        bond_command = self.client.get_delegations(ledger_address)
-        _, stdout_bond, _ = self.execute_command(bond_command)
-
-        Withdrawal.delete_all(self.seed)
-        withdrawals = self.parser.parse_client_withdrawals(stdout_bond)
-        for withdrawal in withdrawals:
-            account = Account.get_by_address(withdrawal[0], self.seed)
-            validator = Validator.get_by_address(withdrawal[1], self.seed)
-            if account is not None and validator is not None:
-                Withdrawal.create_withdrawal(account.get_id(), validator.get_id(), withdrawal[4],
-                                             withdrawal[2], self.seed)
+        for withdraw in compatible_withdraws:
+            Withdrawal.delete_by_id(withdraw.get_id())
 
         affected_rows = Account.update_account_balance(delegation_account.alias, 'NAM', withdrawable_sum, self.seed)
         self.assert_row_affected(affected_rows, 1)

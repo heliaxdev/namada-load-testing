@@ -78,7 +78,7 @@ class Delegation(BaseModel):
 
     @classmethod
     def get_random_valid_delegation(cls, current_epoch: int, seed: int):
-        return cls.select().where(cls.epoch < current_epoch, cls.amount < 50000, cls.seed == seed).order_by(
+        return cls.select().where(cls.epoch <= current_epoch, cls.amount < 50000, cls.seed == seed).order_by(
             fn.Random()).get_or_none()
 
 
@@ -91,7 +91,7 @@ class Withdrawal(BaseModel):
 
     @classmethod
     def create_withdrawal(cls, account_id: int, validator_id: int, amount: int, epoch: int, seed: int):
-        return cls.get_or_create(account_id=account_id, validator_id=validator_id, amount=amount, epoch=epoch,
+        return cls.create(account_id=account_id, validator_id=validator_id, amount=amount, epoch=epoch,
                                  seed=seed)
 
     @classmethod

@@ -47,6 +47,9 @@ class ClientCommands(Command):
     def get_delegations(self, ledger_address: str):
         return self._get_full_command(self.sub_binary, "bonds", ledger_address)
 
+    def get_delegations_by_owner_and_validator(self, owner: str, validator: str, ledger_address: str):
+        return self._get_full_command(self.sub_binary, "bonds --owner {0} --validator {1}".format(owner, validator), ledger_address)
+
     def get_proposal(self, proposal_id: Union[int, None], ledger_address: str):
         if proposal_id:
             return self._get_full_command(self.sub_binary, "query-proposal --proposal-id {0}".format(proposal_id),

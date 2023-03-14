@@ -148,23 +148,21 @@ class Init(Task):
 
     def _get_withdrawals(self, account_addresses: List[str], validator_addresses: List[str], ledger_address: str) -> \
             List[Tuple[str, str, int, int, int]]:
-        command = self.client.get_delegations(ledger_address)
-        is_successful, stdout, stderr = self.execute_command(command)
 
-        if not is_successful:
-            raise Exception("Can't read bonds.")
+        all_withdrawals = []
 
-        withdrawals = self.parser.parse_client_withdrawals(stdout)
+        for validator_address in validator_addresses:
+            for account_address in account_addresses:
+                command = self.client.get_delegations_by_owner_and_validator(account_address, validator_address, ledger_address)
+                is_successful, stdout, stderr = self.execute_command(command)
 
-        filtered_withdrawals = []
-        for withdrawal in withdrawals:
-            if not withdrawal[0] in account_addresses:
-                continue
-            if not withdrawal[1] in validator_addresses:
-                continue
-            filtered_withdrawals.append(withdrawal)
+                if not is_successful:
+                    raise Exception("Can't read bonds.")
 
-        return filtered_withdrawals
+                withdrawals = self.parser.parse_client_withdrawals(stdout, validator_address)
+                all_withdrawals.extend(withdrawals)
+
+        return all_withdrawals
 
     def _init_storage(self, aliases: List[str], addresses: List[str], validator_addresses: List[str],
                       alias_balances: Dict[str, Dict[str, int]], delegations: List[Tuple[str, str, int, int]],

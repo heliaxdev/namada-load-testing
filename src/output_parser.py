@@ -84,17 +84,17 @@ class Parser:
         return bonds
 
     @staticmethod
-    def parse_client_withdrawals(output: str) -> List[Tuple[str, str, int, int, int]]:
+    def parse_client_withdrawals(output: str, validator_address: str) -> List[Tuple[str, str, int, int, int]]:
         delegator_address = None
-        validator_address = None
+        # validator_address = None
         withdrawals = []
         for line in output.splitlines()[2:]:
             if line.strip().startswith('Unbonded delegations'):
                 tmp = line.split(' ')
                 delegator_address = Parser._remove_symbols(tmp[3])
-                validator_address = Parser._remove_symbols(tmp[6])
+            #     validator_address = Parser._remove_symbols(tmp[4])
             elif line.strip().startswith('Withdrawable from') and (
-                    delegator_address is not None and validator_address is not None):
+                    delegator_address is not None):
                 tmp = line.strip().split()
                 epoch = Parser._remove_symbols(tmp[3])
                 epoch_active = Parser._remove_symbols(tmp[6])
@@ -104,6 +104,7 @@ class Parser:
                 ))
 
         return withdrawals
+
 
     @staticmethod
     def parse_client_proposals(output: str) -> List[Tuple[int, str, int, int, str]]:
@@ -130,3 +131,15 @@ class Parser:
     @staticmethod
     def _remove_symbols(string: str):
         return ''.join(c for c in string if c.isalnum())
+
+    @staticmethod
+    def parse_withdrawal_from_unbond_tx(output: str) -> List[Tuple[int, int]]:
+        withdrawals = []
+        for line in output.splitlines():
+            if 'withdrawable starting from epoch' in line.strip():
+                tmp = line.strip().split()
+                amount = int(tmp[1])
+                epoch = int(Parser._remove_symbols(tmp[-1]))
+                withdrawals.append((epoch, amount))
+
+        return withdrawals

@@ -6,8 +6,7 @@ from src.task import Task, TaskResult
 
 @dataclass
 class Unbond(Task):
-    UNBOND_EPOCH_WAIT: int = 4
-    ACTIVE_EPOCH_WAIT: int = 2
+    WITHDRAWAL_EPOCH_WAIT: int = 7
 
     def handler(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:
         epoch_command = self.client.get_current_epoch(ledger_address)
@@ -32,19 +31,12 @@ class Unbond(Task):
         if not is_successful:
             return TaskResult(self.task_name, command, stdout, stderr, step_index, self.seed)
 
-        # workaround cause I can't understand how to get the correct withdrawal epoch
-        bond_command = self.client.get_delegations(ledger_address)
-        _, stdout_bond, stderr_bond = self.execute_command(bond_command)
-
-        withdrawals = self.parser.parse_client_withdrawals(stdout_bond)
-        Withdrawal.delete_all(self.seed)
+        withdrawals = self.parser.parse_withdrawal_from_unbond_tx(stdout)
         for withdrawal in withdrawals:
-            delegation_account = Account.get_by_address(withdrawal[0], self.seed)
-            validator_account = Validator.get_by_address(withdrawal[1], self.seed)
-            if delegation_account is not None and validator_account is not None:
-                Withdrawal.create_withdrawal(delegation_account.get_id(), validator_account.get_id(), withdrawal[4],
-                                             withdrawal[2], self.seed)
+            Withdrawal.create_withdrawal(delegation_account.get_id(), validator_account.get_id(), withdrawal[1],
+                                         withdrawal[0], self.seed)
 
-        Delegation.delete_by_id(delegation.get_id())
+        affected_rows = Delegation.delete_by_id(delegation.get_id())
+        self.assert_row_affected(affected_rows, 1)
 
         return TaskResult(self.task_name, ' '.join(command), stdout, stderr, step_index, self.seed)
