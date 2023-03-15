@@ -46,6 +46,8 @@ class Init(Task):
         command = self.wallet.address_list()
         is_successful, stdout, _stderr = self.execute_command(command)
 
+        print(_stderr)
+
         if not is_successful:
             raise Exception("Can't list wallet addresses.")
 

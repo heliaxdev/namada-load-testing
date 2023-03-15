@@ -1,9 +1,9 @@
 import json
 import logging
-from dataclasses import dataclass, field
-from multiprocessing.context import Process
+from dataclasses import dataclass
 from multiprocessing import Queue
 from pathlib import Path
+from threading import Thread
 from time import sleep
 from typing import List
 
@@ -23,12 +23,14 @@ class Coordinator:
         Path("db.db").unlink(missing_ok=True)
         connect()
 
-        q = Queue()
+        managers_queue = Queue()
         managers = [Manager('manager:{}'.format(seed), config, int(seed)) for seed in set(seeds)]
-        processes = [Process(target=Coordinator._run_manager, args=(manager, base_directory, nodes, fail_fast, q))
-                     for manager in managers]
+        threads = [
+            Thread(target=Coordinator._run_manager, args=(manager, base_directory, nodes, fail_fast, managers_queue))
+            for manager in managers
+        ]
 
-        # waiting for node to be synced
+        # waiting for nodes to be synced
         waiting_sync_node = [True for _ in nodes]
         while any(waiting_sync_node):
             for index, node in enumerate(nodes):
@@ -47,15 +49,15 @@ class Coordinator:
 
         logging.info("coordinator - Starting load testing with {}...".format(', '.join(seeds)))
 
-        for p in processes:
-            p.start()
+        for t in threads:
+            t.start()
 
-        for p in processes:
-            p.join()
+        for t in threads:
+            t.join()
 
         logging.info("coordinator - Done load testing!")
 
-        Coordinator._dump_stats(q, json_output)
+        Coordinator._dump_stats(managers_queue, json_output)
 
     @staticmethod
     def _run_manager(manager: Manager, base_directory: str, nodes: List[str], fail_fast: bool, queue: Queue):
