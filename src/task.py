@@ -73,8 +73,8 @@ class Task(ABC):
     parser: Parser = field(init=False)
 
     def __post_init__(self):
-        self.wallet = WalletCommands(self.base_binary)
-        self.client = ClientCommands(self.base_binary)
+        self.wallet = WalletCommands(self.base_binary, self.base_diretory)
+        self.client = ClientCommands(self.base_binary, self.base_diretory)
         self.parser = Parser()
 
     def run(self, step_index: int, base_directory: str, ledger_address: str, dry_run: bool) -> TaskResult:

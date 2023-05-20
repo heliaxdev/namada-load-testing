@@ -66,6 +66,8 @@ class Init(Task):
         command = self.client.get_current_validators(ledger_address)
         is_successful, stdout, stderr = self.execute_command(command)
 
+        print(stdout)
+
         if not is_successful:
             logging.debug(stdout)
             logging.debug(stderr)
@@ -153,12 +155,16 @@ class Init(Task):
 
         all_withdrawals = []
 
+        print(validator_addresses)
+
         for validator_address in validator_addresses:
             for account_address in account_addresses:
                 command = self.client.get_delegations_by_owner_and_validator(account_address, validator_address, ledger_address)
+                print(command)
                 is_successful, stdout, stderr = self.execute_command(command)
 
                 if not is_successful:
+                    print(stderr)
                     raise Exception("Can't read bonds.")
 
                 withdrawals = self.parser.parse_client_withdrawals(stdout, validator_address)
