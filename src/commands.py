@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Union, List
+from typing import Union, List, Optional
 
 from src.constants import ACCOUNT_FORMAT
 
@@ -7,13 +7,14 @@ from src.constants import ACCOUNT_FORMAT
 @dataclass
 class Command:
     base_binary: str
+    base_folder: Optional[str]
 
     def _get_full_command(self, sub_binary: str, command: str, ledger_address: Union[str, None]) -> List[str]:
         if ledger_address:
-            return "{0} {1} {2} --ledger-address {3}".format(self.base_binary, sub_binary, command,
-                                                             ledger_address).split(' ')
+            return "{0} --base-dir {3} {1} {2} --ledger-address {4}".format(self.base_binary, sub_binary, command,
+                                                             self.base_folder, ledger_address).split(' ')
         else:
-            return "{0} {1} {2}".format(self.base_binary, sub_binary, command).split(' ')
+            return "{0} --base-dir {3} {1} {2}".format(self.base_binary, sub_binary, command, self.base_folder).split(' ')
 
     @staticmethod
     def _remove_prefix(text, prefix):

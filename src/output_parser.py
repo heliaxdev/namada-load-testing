@@ -109,7 +109,7 @@ class Parser:
     @staticmethod
     def parse_client_proposals(output: str) -> List[Tuple[int, str, int, int, str]]:
         proposals = []
-        output = output.splitlines()[2:]
+        output = output.splitlines()[3:]
         for index, line in enumerate(output[::5]):
             proposal_id = int(line.split(': ')[1])
             status = output[4 + index * 5].split(': ')[1].strip()
